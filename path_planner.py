@@ -22,6 +22,7 @@ class PathPlanner:
         self.start_point = start
         self.goal = goal
         self.root = Node(None, (0,0))
+        self.last_node = None
         
     def find_best_path(self):
         #print('find best path')
@@ -30,6 +31,7 @@ class PathPlanner:
         current_leaves.append(self.root)
         all_nodes[self.root.id] = self.root
         self._find_best_path(current_leaves, all_nodes)
+        return self.last_node
     
     def _find_best_path(self, current_leaves, all_nodes):
         next_level_leaves = []
@@ -40,7 +42,9 @@ class PathPlanner:
             #check for shorter path
             if node.location == self.goal:
                 print('reached goal: ' + node.path)
-                continue
+                #continue
+                self.last_node = node
+                return
 
             neighbors = self.get_neighbors(node)
             for n in neighbors:
