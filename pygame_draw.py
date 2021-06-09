@@ -9,8 +9,8 @@ Created on Tue Jun  8 08:36:26 2021
 """
 
 import pygame
-
-
+import random
+import math
 
 def add_block(x,y,w,h,board):
     board[x:x+w,y:y+h] = 1
@@ -34,17 +34,29 @@ gameDisplay.fill(black)
 # pygame.draw.circle(gameDisplay, white, (150,150), 75)
 # pygame.draw.polygon(gameDisplay, green, ((25,75),(76,125),(250,375),(400,25),(60,540)))
 
+w, h = 300, 300
+board = np.zeros((w,h))
 
-board = np.zeros((100,100))
-add_block(10,10,20,30,board)
-add_block(30,20,30,10,board)
-add_block(50,40,20,10,board)
-add_block(70,50,25,45,board)
-add_block(10,50,30,45,board)
+for i in range (1,20):
+    choice = random.randint(0,2)
+    x = random.randint(10,w-12)
+    y = random.randint(10,h-12)
+    ww = min(random.randint(10,100), w-x-10)
+    hh = min(random.randint(10,100), h-y-10)
+    add_block(x,y,ww,hh,board)  
+
+
+
+# add_block(10,10,20,30,board)
+# add_block(30,20,30,10,board)
+# add_block(50,40,20,10,board)
+# add_block(70,50,25,45,board)
+# add_block(10,50,30,45,board)
 
 
 start = (5,5)
-goal = (99,99)
+goal = (w-1,h-1)
+
 pp = PathPlanner(board, start, goal)
 #pp.set_obstacle()
 node = pp.find_best_path()
