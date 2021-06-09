@@ -34,25 +34,16 @@ gameDisplay.fill(black)
 # pygame.draw.circle(gameDisplay, white, (150,150), 75)
 # pygame.draw.polygon(gameDisplay, green, ((25,75),(76,125),(250,375),(400,25),(60,540)))
 
-w, h = 500, 500
+w, h = 400, 400
 board = np.zeros((w,h))
 
-for i in range (1,20):
+for i in range (1,30):
     choice = random.randint(0,2)
     x = random.randint(10,w-12)
     y = random.randint(10,h-12)
     ww = min(random.randint(10,100), w-x-10)
     hh = min(random.randint(10,100), h-y-10)
     add_block(x,y,ww,hh,board)  
-
-
-
-# add_block(10,10,20,30,board)
-# add_block(30,20,30,10,board)
-# add_block(50,40,20,10,board)
-# add_block(70,50,25,45,board)
-# add_block(10,50,30,45,board)
-
 
 start = (5,5)
 goal = (w-1,h-1)
@@ -66,8 +57,6 @@ while node != None:
     pygame.draw.line(gameDisplay, blue, (last_x,last_y), (x,y),5)
     last_x, last_y = x, y
     node = node.parent
-
-
 
 while True:
     for event in pygame.event.get():
