@@ -34,7 +34,7 @@ gameDisplay.fill(black)
 # pygame.draw.circle(gameDisplay, white, (150,150), 75)
 # pygame.draw.polygon(gameDisplay, green, ((25,75),(76,125),(250,375),(400,25),(60,540)))
 
-w, h = 300, 300
+w, h = 500, 500
 board = np.zeros((w,h))
 
 for i in range (1,20):
