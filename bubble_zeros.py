@@ -18,6 +18,6 @@ def bubble_zeros(arr):
                     break
 
 #arr = [1,2,3,4,0,0,0,5,0,6,7,8,9,10,11,0,0,12,13]
-arr = np.random.randint(2,size=10000)
+arr = np.random.randint(4,size=10000)
 bubble_zeros(arr)
 print(arr)
