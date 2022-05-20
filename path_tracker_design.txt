@@ -1,0 +1,22 @@
+The idea is to plan a path along a perceived line and follow it.
+1. Find a point closest to the current location of the robot
+2. Calculate the robot's pose w.r.t the point (look at angle)
+3. From that point start going with increasing angles to locate distances to other points
+4. Plan a smooth path that will pass with a certain distance to the other points
+Identify where the robot is w.r.t the planned path
+5. Calculate the angular and linear velocities needed to make a single correction (gradient)
+that will move the robot closer to the path. If the linear velocity is constant then that
+we need only calculate the angular velocity needed. The farter we are from the desired angle
+the faster we should rotate.
+6. A time unit passes by, we check where we are w.r.t the path and what correction we should make
+If our path needs to be recalculated and if so we recalculate. This can be because the current path 
+is almost complete (we are close to the path's end)
+7. Use splines to connect the perceived points as a smooth path.
+8. 
+
+Breaking apart the challenge:
+We follow a devide and concure approach:
+1. Task 1: Plan a path from the observations. (1-4 above)
+2. Task 2: Given a path calculate the gradient needed to minimize the error between the 
+robot position and the path. This is needed because the angular speed is a change is 
+distance in time so we want the gradient. Assume constant speed.
