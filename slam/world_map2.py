@@ -10,9 +10,17 @@ Created on Tue May  18 08:00:00 2022
 @author: Gil Yaary
 """
 
+white = (255,255,255)
+black = (0,0,0)
+red = (255,0,0)
+green = (0,255,0)
+blue = (0,0,255)
+
 class WorldMap:
     def __init__(self, w, h, cb):
         #print("init")
+        self.cb = cb
+        print('callback set: ', self.cb)
         self.w = w
         self.h = h
         self.robot_x  = 40
@@ -21,8 +29,16 @@ class WorldMap:
         self.rectangles = []
         self.grid = []
         self.grid = np.zeros((w,h))
-        self.image_initialized = False
-        self.cb = cb
+        for i in range (1, 20):
+            x = random.randint(100,w-100)
+            y = random.randint(100,h-100)
+            ww = min(random.randint(10,100), w-100-x)
+            hh = min(random.randint(10,100), h-100-y)
+            #add_block(x,y,ww,hh,board)  
+            self.set_rectangle__at(x, y, ww, hh)
+        self.display_world(True)
+    
+    
     #theta is degrees
     def set_robot_at(self, x, y, theta):
         self.robot_x  = x
@@ -35,12 +51,14 @@ class WorldMap:
     def set_rectangle__at(self, x, y, w, h):
         self.rectangles.append((x,y,w,h))
         self.grid[x:x+w,y:y+h] = 120
+        # TODO: Now add the lines of the rectangle to collection of polygons
+        # each polygon has a collection of lines and each line has 2 points
 
     def on_press(self, event):
         print('press', event.key)
         sys.stdout.flush()
         #self.display_world(False)
-        self.cb(event.key)
+        self.cb(event.key, self)
         
 
     def display_world(self, Redraw = False):
@@ -101,4 +119,5 @@ class WorldMap:
             image[x1:x2, y1-6:y1+6] = 150
             image[x1:x2, y2-6:y2+6] = 150
             image[x1:x2, y2-6:y2+6] = 150
+
 

@@ -1,0 +1,15 @@
+TurtleBot's odometry
+In this section, we explore the TurtleBot's odometry. 
+The general definition of odometry is the use of data from motion sensors to estimate change in position 
+over time. 
+Odometry is used by the TurtleBot to estimate its position and orientation 
+relative to a starting location given in terms of an x and y position 
+and an orientation around the z (upward) axis. 
+
+The topic is /odom and the command to view the form of the /odom message is as follows:
+
+$ rostopic echo /odom
+When you execute this echo command, the output will be updated continuously on the screen. 
+However, we wish to display TurtleBot's motion using rviz. 
+When the odometry option is chosen in rviz, the TurtleBot's position and orientation will be displayed 
+with arrows ...

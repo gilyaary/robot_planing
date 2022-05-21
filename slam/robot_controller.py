@@ -5,11 +5,6 @@ import math
 from world_map2 import * 
 
 #pygame.init()
-white = (255,255,255)
-black = (0,0,0)
-red = (255,0,0)
-green = (0,255,0)
-blue = (0,0,255)
 w = 1700
 h = 900
 #gameDisplay = pygame.display.set_mode((w,h))
@@ -30,31 +25,36 @@ h = 900
 # Needs:
 # Algo 1: Input: robot [x,y,theta] Output: distance  to closest object (Simulates sonar or LIDAR)
 # Also 2: Input: control signal to motors [x,y] Output Odometry [dx,dy,dTheta] 
-def cb(key):
-    print('callback called with Key: ' + key)
+#
+# TODO: we set the x, y and theta here as if we were moving the robot and reading the odometry
+# We should get the odomtry for the world_map and give it commands to move right, left, up and down
+# We then get back odometry with the estimated location (the map knows the real location and pose)
+# We use the odometry to recalculate the prior for location hypothesis
+ 
+    
+
+def cb(key, wm):
+    print('callback called with Key: ' + key) 
     x,y,theta = wm.get_robot()
     if key == 'left':
         wm.set_robot_at(x - 20 , y, theta)
+        #wm.move_left(10)
     if key == 'right':
         wm.set_robot_at(x + 20, y, theta)
+        #wm.move_right(10)
     if key == 'up':
         wm.set_robot_at(x, y - 20, theta)
+        #wm.move_up(10)
     if key == 'down':
         wm.set_robot_at(x, y + 20, theta)
+        #wm.move_down(10)
     wm.display_world(False)
-    # TODO: 
 
+wm = WorldMap(w,h, cb)
 
+    #wm.get_pose_from_odometry()
+    #wm.get_sensor_readings() #comes as distance from robot. For map we need to translate to world map coordinates
+    #Now update the location hypothesis and SAVE the sensor data. 
 
-wm = WorldMap(w,h,cb)
-
-for i in range (1, 20):
-    x = random.randint(100,w-100)
-    y = random.randint(100,h-100)
-    ww = min(random.randint(10,100), w-100-x)
-    hh = min(random.randint(10,100), h-100-y)
-    #add_block(x,y,ww,hh,board)  
-    wm.set_rectangle__at(x, y, ww, hh)
-
-wm.display_world(True)
+     
 
