@@ -27,16 +27,18 @@ class WorldMap:
         self.robot_x  = 100
         self.robot_y  = 100
         self.robot_theta  = 0
+        #self.grid = []
+        #self.grid = np.zeros((w,h))
         self.rectangles = []
-        self.grid = []
-        self.grid = np.zeros((w,h))
+
         for i in range (1, 25):
             x = random.randint(100,w-100)
             y = random.randint(100,h-100)
             ww = min(random.randint(10,100), w-100-x)
             hh = min(random.randint(10,100), h-100-y)
-            #add_block(x,y,ww,hh,board)  
-            self.set_rectangle__at(x, y, ww, hh)
+            self.rectangles.append((x,y,ww,hh))
+            
+        
         self.display_world(True)
     
     
@@ -50,12 +52,6 @@ class WorldMap:
     def get_robot(self):
         return self.robot_x, self.robot_y, self.robot_theta
     
-    def set_rectangle__at(self, x, y, w, h):
-        self.rectangles.append((x,y,w,h))
-        self.grid[x:x+w,y:y+h] = 120
-        # TODO: Now add the lines of the rectangle to collection of polygons
-        # each polygon has a collection of lines and each line has 2 points
-
     def on_press(self, event):
         #print('press', event.key)
         sys.stdout.flush()
@@ -65,13 +61,13 @@ class WorldMap:
 
     def display_world(self, Redraw = False):
         #print(self.grid)
-        image = self.grid.copy()
+        #image = self.grid.copy()
         
         if Redraw == True:
             robot_x = self.robot_x
             robot_y = self.robot_y
             #image[robot_x:robot_x+30, robot_y:robot_y+30] = 150
-            self.draw_circle(robot_x, robot_y, 20, image)
+            
         
             self.fig, self.ax = plt.subplots()
             self.fig.canvas.mpl_connect('key_press_event', self.on_press)
@@ -82,8 +78,10 @@ class WorldMap:
             self.fig.set_figwidth(20)
             
             #self.ax.imshow(np.flip(image.transpose(), 0))
+            self.draw_circle(robot_x, robot_y, 20)
             self.draw_sensor_reads()
-            self.ax.imshow(image.transpose())
+            self.draw_objects()
+            #self.ax.imshow(image.transpose())
 
             plt.gca().invert_yaxis()
             plt.show()
@@ -91,44 +89,31 @@ class WorldMap:
             robot_x = self.robot_x
             robot_y = self.robot_y
             #image[robot_x:robot_x+30, robot_y:robot_y+30] = 150
-            self.draw_circle(robot_x, robot_y, 20, image)
             self.ax.clear()
             #self.ax.imshow(np.flip(image.transpose(), 0))
+            self.draw_circle(robot_x, robot_y, 20)
+            self.draw_objects()
             self.draw_sensor_reads()
-            self.ax.imshow(image.transpose())
+            #self.ax.imshow(image.transpose())
             
             plt.gca().invert_yaxis()
             self.fig.canvas.draw()
-            
-    
-    def draw_circle(self, x, y, r, image):
-        for step in range (0, r*50) :
-            ddx = step / 50.0
-            dy = int (math.sqrt(r*r - ddx*ddx))
-            dx = int (ddx)
-            x1, x2, y1, y2 = x-dx, x+dx, y-dy, y+dy
-            image[x1:x2, y1] = 130
-            image[x1:x2, y1] = 130
-            image[x1:x2, y2] = 130
-            image[x1:x2, y2] = 130
-            
 
-    def draw_circle2(self, x, y, r, image):
-        for dx in range (0, r) :
-            dy = int (math.sqrt(r*r - dx*dx))
-            print(dy)
-            x1, x2, y1, y2 = x-dx, x+dx, y-dy, y+dy
-            '''
-            ww = 4
-            image[x1-ww:x1+ww, y1-ww:y1+ww] = 150
-            image[x1-ww:x1+ww, y2-ww:y2+ww] = 150
-            image[x2-ww:x2+ww,y1-ww:y1+ww] = 150
-            image[x2-ww:x2+ww, y2-ww:y2+ww] = 150
-            '''
-            image[x1:x2, y1-6:y1+6] = 130
-            image[x1:x2, y1-6:y1+6] = 130
-            image[x1:x2, y2-6:y2+6] = 130
-            image[x1:x2, y2-6:y2+6] = 130
+    def draw_objects(self):
+
+        self.ax.set_facecolor((1.0, 0.47, 0.42))
+        
+        for rect in self.rectangles:
+            x = rect[0]
+            y = rect[1]
+            w = rect[2]
+            h = rect[3]
+            rectangle = plt.Rectangle((x,y),w,h, color='g')
+            self.ax.add_patch(rectangle)            
+    
+    def draw_circle(self, x, y, r):
+        circle = plt.Circle((x,y),r, color='y')
+        self.ax.add_patch(circle)
 
     def draw_line_from_point(self, x1, y1, angle, distance):
         x2 = x1 + distance * math.cos(angle)

@@ -2,6 +2,8 @@ from multiprocessing.connection import answer_challenge
 import numpy as np
 import math as math
 
+SMALL_VALUE = 0.0000000000000000001
+
 #No need to recalculate the b_matrix and m_matrix they stay the same.
 #we just need the robot's m and b for each degree and calculating lines 27 for intersect
 def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
@@ -9,7 +11,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
     
     np.set_printoptions(precision=2)    
     
-    m_matrix = (lines_matrix[:,3]-lines_matrix[:,1]) / (lines_matrix[:,2]-lines_matrix[:,0]+0.00000000000000001) #dy/dx
+    m_matrix = (lines_matrix[:,3]-lines_matrix[:,1]) / (lines_matrix[:,2]-lines_matrix[:,0]+SMALL_VALUE) #dy/dx
     b_matrix = lines_matrix[:,1] - m_matrix*lines_matrix[:,0] # b = y - mx
     
     if debug:
@@ -19,7 +21,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
     angle_distance = []
 
     for i in range(0, 360):
-        dt = i/360 * (math.pi*2) + 0.00000000001
+        dt = i/360 * (math.pi*2)
         current_robot_theta = robot_theta + dt     
         m_robot = math.tan(current_robot_theta)
         #print(m_robot)
@@ -85,7 +87,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
         proximities = (1 / (distances)) * mask
         if debug:
             print ('proximities', proximities * mask) 
-        distance_to_closest_object = 1 / (np.max(proximities) + 0.0000000001)
+        distance_to_closest_object = 1 / (np.max(proximities) + SMALL_VALUE)
         #we may also need the index of the closest line
         if debug:
             print('distances to closest object', distance_to_closest_object)
