@@ -3,6 +3,7 @@ import random
 import math
 import matplotlib.pyplot as plt
 import sys
+from line_utils import *
 #np.set_printoptions(threshold=sys.maxsize)
 """
 Created on Tue May  18 08:00:00 2022
@@ -23,13 +24,13 @@ class WorldMap:
         print('callback set: ', self.cb)
         self.w = w
         self.h = h
-        self.robot_x  = 40
-        self.robot_y  = 40
-        self.robot_theta  = 30
+        self.robot_x  = 100
+        self.robot_y  = 100
+        self.robot_theta  = 0
         self.rectangles = []
         self.grid = []
         self.grid = np.zeros((w,h))
-        for i in range (1, 20):
+        for i in range (1, 2):
             x = random.randint(100,w-100)
             y = random.randint(100,h-100)
             ww = min(random.randint(10,100), w-100-x)
@@ -44,6 +45,7 @@ class WorldMap:
         self.robot_x  = x
         self.robot_y  = y
         self.robot_theta  = theta
+        
 
     def get_robot(self):
         return self.robot_x, self.robot_y, self.robot_theta
@@ -55,7 +57,7 @@ class WorldMap:
         # each polygon has a collection of lines and each line has 2 points
 
     def on_press(self, event):
-        print('press', event.key)
+        #print('press', event.key)
         sys.stdout.flush()
         #self.display_world(False)
         self.cb(event.key, self)
@@ -78,16 +80,22 @@ class WorldMap:
             #ax.plot(np.random.rand(12), np.random.rand(12), 'go')
             self.fig.set_figheight(15)
             self.fig.set_figwidth(20)
+            
+            #self.ax.imshow(np.flip(image.transpose(), 0))
             self.ax.imshow(image.transpose())
 
+            plt.gca().invert_yaxis()
             plt.show()
         else:
             robot_x = self.robot_x
             robot_y = self.robot_y
             #image[robot_x:robot_x+30, robot_y:robot_y+30] = 150
             self.draw_circle(robot_x, robot_y, 20, image)
+            self.draw_sensor_reads()
             self.ax.clear()
+            #self.ax.imshow(np.flip(image.transpose(), 0))
             self.ax.imshow(image.transpose())
+            plt.gca().invert_yaxis()
             self.fig.canvas.draw()
             
     
@@ -120,4 +128,26 @@ class WorldMap:
             image[x1:x2, y2-6:y2+6] = 150
             image[x1:x2, y2-6:y2+6] = 150
 
+    def draw_sensor_reads(self):
+        #self.rectangles.append((x,y,w,h))
+        lines = []
+        for rect in self.rectangles:
+            x = rect[0]
+            y = rect[1]
+            w = rect[2]
+            h = rect[3]
+            #print(x,y,w,h)
+            lines.append([x,y,x+w,y])
+            lines.append([x,y,x,y+h])
+            lines.append([x,y+h,x+w,y+h])
+            lines.append([x+w,y,x+w,y+h])
 
+        #print(lines)
+
+        #self.robot_x, self.robot_y, self.robot_theta            
+        angle_distance = find_closest_intersecting_line([self.robot_x, self.robot_y], self.robot_theta, np.array(lines))
+        print('##################\n',self.robot_x, self.robot_y)
+        for x in angle_distance:
+            if not math.isnan(x[1]) and x[1] < 1000000:
+                print( '{:0.2f} degrees => {:0.2f}'.format(x[0], x[1]) )
+                pass

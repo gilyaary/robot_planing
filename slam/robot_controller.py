@@ -34,7 +34,7 @@ h = 900
     
 
 def cb(key, wm):
-    print('callback called with Key: ' + key) 
+    #print('callback called with Key: ' + key) 
     x,y,theta = wm.get_robot()
     if key == 'left':
         wm.set_robot_at(x - 20 , y, theta)
