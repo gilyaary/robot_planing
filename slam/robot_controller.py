@@ -42,10 +42,10 @@ def cb(key, wm):
     if key == 'right':
         wm.set_robot_at(x + 20, y, theta)
         #wm.move_right(10)
-    if key == 'down':
+    if key == 'up':
         wm.set_robot_at(x, y - 20, theta)
         #wm.move_up(10)
-    if key == 'up':
+    if key == 'down':
         wm.set_robot_at(x, y + 20, theta)
         #wm.move_down(10)
     wm.display_world(False)

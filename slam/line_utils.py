@@ -1,8 +1,9 @@
 from multiprocessing.connection import answer_challenge
 import numpy as np
 import math as math
+import random
 
-SMALL_VALUE = 0.0000000000000000001
+SMALL_VALUE = 0.000000000000000000000001
 
 #No need to recalculate the b_matrix and m_matrix they stay the same.
 #we just need the robot's m and b for each degree and calculating lines 27 for intersect
@@ -10,8 +11,15 @@ def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
     debug = False
     
     np.set_printoptions(precision=2)    
+
+    #lines_matrix[:,0] += random.randint(-5,5)
+    #lines_matrix[:,1] += random.randint(-5,5)
     
-    m_matrix = (lines_matrix[:,3]-lines_matrix[:,1]) / (lines_matrix[:,2]-lines_matrix[:,0]+SMALL_VALUE) #dy/dx
+    diff = lines_matrix[:,2]-lines_matrix[:,0]
+    m = (diff == 0) * 0.1
+    m *= SMALL_VALUE
+
+    m_matrix = (lines_matrix[:,3]-lines_matrix[:,1]) / (diff + m) #dy/dx
     b_matrix = lines_matrix[:,1] - m_matrix*lines_matrix[:,0] # b = y - mx
     
     if debug:
@@ -20,8 +28,8 @@ def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
 
     angle_distance = []
 
-    for i in range(0, 360):
-        dt = i/360 * (math.pi*2)
+    for i in range(0, 180):
+        dt = i/180 * (math.pi*2)
         current_robot_theta = robot_theta + dt     
         m_robot = math.tan(current_robot_theta)
         #print(m_robot)
@@ -36,7 +44,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
             print('mrobot', m_robot)
             print('brobot', b_robot)
         
-        x_intersect = (b_robot - b_matrix) / (m_matrix - m_robot) # from equation for height
+        x_intersect = (b_robot - b_matrix) / ((m_matrix - m_robot)+SMALL_VALUE) # from equation for height
         if debug:
             print('x_intersect', x_intersect)
         y_intersect = (m_robot * x_intersect) + b_robot # line formula applied with x_intersect on robot
@@ -66,11 +74,11 @@ def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
         if current_robot_theta <= math.pi * 0.5:
             point_in_correct_direction = x_intersect >= robot_xy[0] *1
         elif current_robot_theta <= math.pi:
-            point_in_correct_direction = x_intersect <= robot_xy[0] * 1
+            point_in_correct_direction = x_intersect < robot_xy[0] * 1
         elif current_robot_theta <= math.pi * 1.5:
             point_in_correct_direction = x_intersect <= robot_xy[0] * 1
         else:
-            point_in_correct_direction = x_intersect >= robot_xy[0] * 1
+            point_in_correct_direction = x_intersect > robot_xy[0] * 1
 
         if debug:
             #print(point_in_lines_x)
@@ -87,7 +95,12 @@ def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
         proximities = (1 / (distances)) * mask
         if debug:
             print ('proximities', proximities * mask) 
+        
+        
         distance_to_closest_object = 1 / (np.max(proximities) + SMALL_VALUE)
+        #distance_to_closest_object = distances
+        
+        
         #we may also need the index of the closest line
         if debug:
             print('distances to closest object', distance_to_closest_object)

@@ -16,6 +16,7 @@ black = (0,0,0)
 red = (255,0,0)
 green = (0,255,0)
 blue = (0,0,255)
+NUMBER_OF_OBJECTS = 25
 
 class WorldMap:
     def __init__(self, w, h, cb):
@@ -31,14 +32,17 @@ class WorldMap:
         #self.grid = np.zeros((w,h))
         self.rectangles = []
 
-        for i in range (1, 25):
+        
+        for i in range (1, NUMBER_OF_OBJECTS):
             x = random.randint(100,w-100)
             y = random.randint(100,h-100)
             ww = min(random.randint(10,100), w-100-x)
             hh = min(random.randint(10,100), h-100-y)
             self.rectangles.append((x,y,ww,hh))
             
-        
+        #self.rectangles.append((150,170,100,120))
+        #self.rectangles.append((1000,1200,10,10))
+
         self.display_world(True)
     
     
@@ -149,10 +153,10 @@ class WorldMap:
         print('##################\n',self.robot_x, self.robot_y)
         for x in angle_distance:
             #max range is 300
-            if not math.isnan(x[1]) and x[1] < 300:
-                print( '{:0.2f} degrees => {:0.2f}'.format(x[0], x[1]) )
+            if not math.isnan(x[1]) and x[1] < 200:
+                #print( '{:0.2f} degrees => {:0.2f}'.format(x[0], x[1]) )
                 deg_rad = (x[0]/360)*2*math.pi
-                print (deg_rad)
+                #print (deg_rad)
                 self.draw_line_from_point(self.robot_x, self.robot_y, deg_rad, x[1])
                 pass
 
