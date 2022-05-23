@@ -5,9 +5,10 @@ import random
 
 SMALL_VALUE = 0.000000000000000000000001
 
+#We consider angles per the robot
 #No need to recalculate the b_matrix and m_matrix they stay the same.
 #we just need the robot's m and b for each degree and calculating lines 27 for intersect
-def find_closest_intersecting_line(robot_xy, robot_theta_x, lines_matrix):
+def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
     debug = False
     
     np.set_printoptions(precision=2)    

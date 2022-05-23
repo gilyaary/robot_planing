@@ -25,12 +25,20 @@ class WorldMap:
         print('callback set: ', self.cb)
         self.w = w
         self.h = h
+        
         self.robot_x  = 100
         self.robot_y  = 100
         self.robot_theta  = 0
+
+        self.odom_robot_x  = 100
+        self.odom_robot_y  = 100
+        self.odom_robot_theta  = 0
+
         #self.grid = []
         #self.grid = np.zeros((w,h))
         self.rectangles = []
+        self.angle_distance = []
+        self.particles = []
 
         
         for i in range (1, NUMBER_OF_OBJECTS):
@@ -42,16 +50,25 @@ class WorldMap:
             
         #self.rectangles.append((150,170,100,120))
         #self.rectangles.append((1000,1200,10,10))
+        self.rectangles.append((0,0,50,50))
+        self.rectangles.append((w-50,h-50,50,60))
 
         self.display_world(True)
-    
-    
+
     #theta is degrees
-    def set_robot_at(self, x, y, theta):
-        self.robot_x  = x
-        self.robot_y  = y
-        self.robot_theta  = theta
-        
+    #TODO: we need to simulate control not exact location
+    #Thus we should have to get command such as right motor, left motor voltage which
+    #would be translated to change is robot's pose 
+    def move_robot_by(self, dx, dy, d_theta):
+        self.robot_x  += dx
+        self.robot_y  += dy
+        self.robot_theta  += d_theta
+ 
+        #TODO: Add error to odometry changes
+        #If we get an error that keeps on growing and do not identify, quantify and compensate for it the inaccuracy gets worse
+        self.odom_robot_x  += dx + (random.random() * 10 ) * random.randint(-1,1)
+        self.odom_robot_y  += dy + (random.random() * 10 ) * random.randint(-1,1)
+        self.odom_robot_theta  += d_theta
 
     def get_robot(self):
         return self.robot_x, self.robot_y, self.robot_theta
@@ -61,7 +78,10 @@ class WorldMap:
         sys.stdout.flush()
         #self.display_world(False)
         self.cb(event.key, self)
-        
+     
+    def add_particles(self, particles):
+        self.particles = particles
+        #print(self.particles)       
 
     def display_world(self, Redraw = False):
         #print(self.grid)
@@ -82,9 +102,10 @@ class WorldMap:
             self.fig.set_figwidth(20)
             
             #self.ax.imshow(np.flip(image.transpose(), 0))
-            self.draw_circle(robot_x, robot_y, 20)
+            self.draw_circle(robot_x, robot_y, 20, 'y')
             self.draw_sensor_reads()
             self.draw_objects()
+            self.draw_particles()
             #self.ax.imshow(image.transpose())
 
             plt.gca().invert_yaxis()
@@ -95,9 +116,10 @@ class WorldMap:
             #image[robot_x:robot_x+30, robot_y:robot_y+30] = 150
             self.ax.clear()
             #self.ax.imshow(np.flip(image.transpose(), 0))
-            self.draw_circle(robot_x, robot_y, 20)
+            self.draw_circle(robot_x, robot_y, 20, 'y')
             self.draw_objects()
             self.draw_sensor_reads()
+            self.draw_particles()
             #self.ax.imshow(image.transpose())
             
             plt.gca().invert_yaxis()
@@ -115,9 +137,14 @@ class WorldMap:
             rectangle = plt.Rectangle((x,y),w,h, color='g')
             self.ax.add_patch(rectangle)            
     
-    def draw_circle(self, x, y, r):
-        circle = plt.Circle((x,y),r, color='y')
+    def draw_circle(self, x, y, r,c):
+        circle = plt.Circle((x,y),r, color=c)
         self.ax.add_patch(circle)
+
+    def draw_particles(self):
+        for p in self.particles:
+            print('particle', p)
+            self.draw_circle(p[0], p[1], 2, 'b')
 
     def draw_line_from_point(self, x1, y1, angle, distance):
         x2 = x1 + distance * math.cos(angle)
@@ -148,10 +175,10 @@ class WorldMap:
         
 
         #self.robot_x, self.robot_y, self.robot_theta            
-        angle_distance = find_closest_intersecting_line([self.robot_x, self.robot_y], self.robot_theta, np.array(lines))
+        self.angle_distance = find_closest_intersecting_line([self.robot_x, self.robot_y], self.robot_theta, np.array(lines))
         
         print('##################\n',self.robot_x, self.robot_y)
-        for x in angle_distance:
+        for x in self.angle_distance:
             #max range is 300
             if not math.isnan(x[1]) and x[1] < 200:
                 #print( '{:0.2f} degrees => {:0.2f}'.format(x[0], x[1]) )
@@ -162,4 +189,10 @@ class WorldMap:
 
         #print(lines)
         
-    
+    def get_odom(self):
+        return self.odom_robot_x, self.odom_robot_y, self.odom_robot_theta
+        
+    def get_angle_distances(self):
+        return self.angle_distance
+
+

@@ -3,10 +3,12 @@ import pygame
 import random
 import math
 from world_map3 import * 
+from gil_slam import *
 
 #pygame.init()
 w = 1700
 h = 900
+slam = None
 #gameDisplay = pygame.display.set_mode((w,h))
 #gameDisplay.fill(black)
 
@@ -37,19 +39,35 @@ def cb(key, wm):
     #print('callback called with Key: ' + key) 
     x,y,theta = wm.get_robot()
     if key == 'left':
-        wm.set_robot_at(x - 20 , y, theta)
+        wm.move_robot_by(-20 , 0, 0)
         #wm.move_left(10)
     if key == 'right':
-        wm.set_robot_at(x + 20, y, theta)
+        wm.move_robot_by(20, 0, 0)
         #wm.move_right(10)
     if key == 'up':
-        wm.set_robot_at(x, y - 20, theta)
+        wm.move_robot_by(0, - 20, 0)
         #wm.move_up(10)
     if key == 'down':
-        wm.set_robot_at(x, y + 20, theta)
+        wm.move_robot_by(0, 20, 0)
         #wm.move_down(10)
+    
+    robot_x, robot_y, robot_theta = wm.get_odom()
+    angle_to_distance = wm.get_angle_distances()
+
+    slam.process_location_change(robot_x,robot_y,robot_theta, angle_to_distance)
+    wm.add_particles(slam.get_particles())
+
     wm.display_world(False)
 
+
+    print('Robot Odom: ', robot_x, robot_y, robot_theta)
+    
+
+initial_x = 100
+initial_y = 100
+initial_theta=0 
+number_of_particles = 100
+slam = GilSlam(initial_x, initial_y, initial_theta, number_of_particles)
 wm = WorldMap(w,h, cb)
 
     #wm.get_pose_from_odometry()
