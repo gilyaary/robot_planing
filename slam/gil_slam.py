@@ -22,13 +22,14 @@ import random
 '''
 
 class GilSlam:
-    def __init__(self, initial_x, initial_y, initial_theta, number_of_particles):
+    def __init__(self, initial_x, initial_y, initial_theta, number_of_particles, w, h):
         pass
         self.last_odom_x = initial_x
         self.last_odom_y = initial_y
         self.last_odom_theta = initial_theta
         self.number_of_particles = number_of_particles
-
+        self.w = w
+        self.h = h
         #Initialize the distribution of particles.
         #In Mapping we initialize the starting location and in localization we can choose a uniform distribution
 
@@ -69,7 +70,11 @@ class GilSlam:
         self.particles[:,0] += x_values
         self.particles[:,1] += y_values
         self.particles[:,2] += theta_values
+        mask = (self.particles >= 0) * 1
+        self.particles *= mask
         #print(self.particles)
+
+
 
 
 '''

@@ -65,7 +65,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
         point_in_lines_x = (x_intersect >= x_min)*1 * (x_intersect <= x_max)*1 # use in() function
         point_in_lines_y = (y_intersect >= y_min)*1 * (y_intersect <= y_max)*1 # use in() function
         
-        point_in_correct_direction = 0
+        point_in_correct_direction = []
         
         if current_robot_theta <= math.pi:
             point_in_correct_direction = y_intersect >= robot_xy[1] *1

@@ -67,7 +67,7 @@ initial_x = 100
 initial_y = 100
 initial_theta=0 
 number_of_particles = 100
-slam = GilSlam(initial_x, initial_y, initial_theta, number_of_particles)
+slam = GilSlam(initial_x, initial_y, initial_theta, number_of_particles, w, h)
 wm = WorldMap(w,h, cb)
 
     #wm.get_pose_from_odometry()

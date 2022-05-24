@@ -126,9 +126,15 @@ class WorldMap:
             self.fig.canvas.draw()
 
     def draw_objects(self):
-
-        self.ax.set_facecolor((1.0, 0.47, 0.42))
+        PINK = (1.0, 0.47, 0.42)
+        self.ax.set_facecolor(PINK)
         
+        self.draw_line(0,0,0,self.h, PINK)
+        self.draw_line(0,0,self.w,0, PINK)
+        self.draw_line(self.w,0,self.w,self.h, PINK)
+        self.draw_line(0,self.h,self.w,self.h, PINK)
+
+
         for rect in self.rectangles:
             x = rect[0]
             y = rect[1]
@@ -152,9 +158,9 @@ class WorldMap:
         self.draw_line(x1,y1,x2,y2)
 
     
-    def draw_line(self,x1,y1,x2,y2):
+    def draw_line(self,x1,y1,x2,y2,color=(1.0, 1, 1)):
         #plt.plot(x1, y1, x2, y2)
-        self.ax.plot([x1,x2],[y1,y2], color="white", linewidth=1)
+        self.ax.plot([x1,x2],[y1,y2], color=color, linewidth=1)
         pass
 
     
