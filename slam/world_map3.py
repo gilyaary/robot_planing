@@ -39,6 +39,7 @@ class WorldMap:
         self.rectangles = []
         self.angle_distance = []
         self.particles = []
+        self.slam_map = []
 
         
         for i in range (1, NUMBER_OF_OBJECTS):
@@ -83,6 +84,9 @@ class WorldMap:
         self.particles = particles
         #print(self.particles)       
 
+    def add_slam_map(self, slam_map):
+        self.slam_map = slam_map
+
     def display_world(self, Redraw = False):
         #print(self.grid)
         #image = self.grid.copy()
@@ -120,6 +124,7 @@ class WorldMap:
             self.draw_objects()
             self.draw_sensor_reads()
             self.draw_particles()
+            self.draw_slam_map()
             #self.ax.imshow(image.transpose())
             
             plt.gca().invert_yaxis()
@@ -149,9 +154,16 @@ class WorldMap:
 
     def draw_particles(self):
         for p in self.particles:
-            print('particle', p)
+            #print('particle', p)
             self.draw_circle(p[0], p[1], 2, 'b')
 
+    def draw_slam_map(self):
+        for p in self.slam_map:
+            #print('particle', p)
+            self.draw_circle(p[0], p[1], 2, (0,1,1))
+
+    
+    
     def draw_line_from_point(self, x1, y1, angle, distance):
         x2 = x1 + distance * math.cos(angle)
         y2 = y1 + distance * math.sin(angle)
@@ -191,6 +203,7 @@ class WorldMap:
                 deg_rad = (x[0]/360)*2*math.pi
                 #print (deg_rad)
                 self.draw_line_from_point(self.robot_x, self.robot_y, deg_rad, x[1])
+                #print('draw line degree ', x[0])
                 pass
 
         #print(lines)

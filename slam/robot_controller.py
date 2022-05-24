@@ -56,6 +56,7 @@ def cb(key, wm):
 
     slam.process_location_change(robot_x,robot_y,robot_theta, angle_to_distance)
     wm.add_particles(slam.get_particles())
+    wm.add_slam_map(slam.get_last_map()) #lets show this as a map on top later
 
     wm.display_world(False)
 
@@ -66,7 +67,7 @@ def cb(key, wm):
 initial_x = 100
 initial_y = 100
 initial_theta=0 
-number_of_particles = 100
+number_of_particles = 1
 slam = GilSlam(initial_x, initial_y, initial_theta, number_of_particles, w, h)
 wm = WorldMap(w,h, cb)
 

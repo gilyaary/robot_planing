@@ -106,8 +106,9 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
         if debug:
             print('distances to closest object', distance_to_closest_object)
         
-        robot_degrees = ((current_robot_theta/(math.pi*2)) * 360)%360
-        #print( '{:0.2f} degrees => {:0.2f}'.format(robot_degrees, distance_to_closest_object) )
+        robot_degrees = (((current_robot_theta)/(math.pi*2)) * 360)%360
+        if distance_to_closest_object < 200:
+            print( '{:0.2f} degrees => {:0.2f}'.format(robot_degrees, distance_to_closest_object) )
         angle_distance.append([robot_degrees, distance_to_closest_object])
         #print('##########################\n')
     #for x in angle_distance:
