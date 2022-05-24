@@ -38,6 +38,7 @@ class WorldMap:
         #self.grid = np.zeros((w,h))
         self.rectangles = []
         self.angle_distance = []
+        self.robot_change_degrees = []
         self.particles = []
         self.slam_map = []
 
@@ -67,9 +68,9 @@ class WorldMap:
  
         #TODO: Add error to odometry changes
         #If we get an error that keeps on growing and do not identify, quantify and compensate for it the inaccuracy gets worse
-        self.odom_robot_x  += dx + (random.random() * 10 ) * random.randint(-1,1)
-        self.odom_robot_y  += dy + (random.random() * 10 ) * random.randint(-1,1)
-        self.odom_robot_theta  += d_theta
+        self.odom_robot_x  += dx + (random.random() * 1 ) * random.randint(-1,1)
+        self.odom_robot_y  += dy + (random.random() * 1 ) * random.randint(-1,1)
+        self.odom_robot_theta  += d_theta + (random.random() * 1 ) * random.randint(-1,1)
 
     def get_robot(self):
         return self.robot_x, self.robot_y, self.robot_theta
@@ -112,7 +113,7 @@ class WorldMap:
             self.draw_particles()
             #self.ax.imshow(image.transpose())
 
-            plt.gca().invert_yaxis()
+            #plt.gca().invert_yaxis()
             plt.show()
         else:
             robot_x = self.robot_x
@@ -127,7 +128,7 @@ class WorldMap:
             self.draw_slam_map()
             #self.ax.imshow(image.transpose())
             
-            plt.gca().invert_yaxis()
+            #plt.gca().invert_yaxis()
             self.fig.canvas.draw()
 
     def draw_objects(self):
@@ -193,7 +194,7 @@ class WorldMap:
         
 
         #self.robot_x, self.robot_y, self.robot_theta            
-        self.angle_distance = find_closest_intersecting_line([self.robot_x, self.robot_y], self.robot_theta, np.array(lines))
+        self.angle_distance, self.robot_change_degrees = find_closest_intersecting_line([self.robot_x, self.robot_y], self.robot_theta, np.array(lines))
         
         print('##################\n',self.robot_x, self.robot_y)
         for x in self.angle_distance:
@@ -212,6 +213,6 @@ class WorldMap:
         return self.odom_robot_x, self.odom_robot_y, self.odom_robot_theta
         
     def get_angle_distances(self):
-        return self.angle_distance
+        return self.robot_change_degrees
 
 

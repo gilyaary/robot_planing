@@ -23,6 +23,7 @@ import random
 
 class GilSlam:
     def __init__(self, initial_x, initial_y, initial_theta, number_of_particles, w, h):
+        
         pass
         self.last_odom_x = initial_x
         self.last_odom_y = initial_y
@@ -38,22 +39,17 @@ class GilSlam:
         #each particle has: x, y, theta, weight
         self.particles = np.zeros((number_of_particles,4))
         
-        mu, sigma = initial_x, 1 # mean and standard deviation
+        mu, sigma = self.last_odom_x, 0.5 # mean and standard deviation
         x_values = np.random.normal(mu, sigma, number_of_particles)
-        mu, sigma = initial_y, 1 # mean and standard deviation
+        mu, sigma = self.last_odom_y, 0.5 # mean and standard deviation
         y_values = np.random.normal(mu, sigma, number_of_particles)
-        mu, sigma = initial_theta, 1 # mean and standard deviation
+        mu, sigma = initial_theta, 0.5 # mean and standard deviation
         theta_values = np.random.normal(mu, sigma, number_of_particles)
-        
-        #self.particles[:,0] = x_values
-        #self.particles[:,1] = y_values
-        #self.particles[:,2] = theta_values
-        
-        self.particles[:,0] = initial_x
-        self.particles[:,1] = initial_y
-        self.particles[:,2] = initial_theta
-        
 
+        self.particles[:,0] = x_values
+        self.particles[:,1] = y_values
+        self.particles[:,2] = theta_values
+        
         #print(self.particles)
 
     #1700,900,360 width, height, angles
@@ -74,11 +70,11 @@ class GilSlam:
         # Step 1: Update location belief based on odometry changes. We shift the belief per odom changes but we also
         # add some noise to all areas (flatten due to uncertainty and noise in odom)
          
-        mu, sigma = dx, 10 # mean and standard deviation
+        mu, sigma = dx, 0 # mean and standard deviation
         x_values = np.random.normal(mu, sigma, self.number_of_particles)
-        mu, sigma = dy, 10 # mean and standard deviation
+        mu, sigma = dy, 0 # mean and standard deviation
         y_values = np.random.normal(mu, sigma, self.number_of_particles)
-        mu, sigma = d_theta, 10 # mean and standard deviation
+        mu, sigma = d_theta, 0 # mean and standard deviation
         theta_values = np.random.normal(mu, sigma, self.number_of_particles)
         self.particles[:,0] += x_values
         self.particles[:,1] += y_values
@@ -96,19 +92,16 @@ class GilSlam:
 
         # 3 odom vectors
         # odom_robot_x, odom_robot_y, odom_robot_theta
-        measurements_xy = []
+        measurements_theta_distance = []
         for angle_distance in angle_to_distance_map:
             angle = angle_distance[0]
             distance = angle_distance[1]
             if not math.isnan(distance) and distance < 200:
                 #print(angle, distance)
-                #translate from polar to cartesian coordinates 
-                x = distance * math.cos( (angle/360) * (math.pi*2) )
-                y = distance * math.sin( (angle/360) * (math.pi*2) )
-                measurements_xy.append([x,y,1])
+                measurements_theta_distance.append([angle,distance])
         #print(measurements_xy)
         
-        if len(measurements_xy) == 0:
+        if len(measurements_theta_distance) == 0:
             return
 
         for particle in self.particles:
@@ -122,18 +115,23 @@ class GilSlam:
             particle_x = particle[0]
             particle_y = particle[1]
             particle_theta = particle[2]
-            transformation_matrix = np.array([
-                [math.cos(particle_theta), math.sin(particle_theta),0],
-                [math.sin(particle_theta), math.cos(particle_theta),0],
-                [0,0,1]
-            ])
+            # transformation_matrix = np.array([
+            #     [math.cos(particle_theta), -math.sin(particle_theta),0],
+            #     [math.sin(particle_theta), math.cos(particle_theta),0],
+            #     [0,0,1]
+            # ])
 
-            #print(np.array(measurements_xy).shape)
-            #print(transformation_matrix.shape)
-            transformed = np.array(measurements_xy).dot(transformation_matrix)
-            #print (transformed)
-            self.last_map = transformed
-
+            angles = particle_theta + np.array(measurements_theta_distance)[:,0]
+            x = particle_x + np.array(measurements_theta_distance)[:,1] * np.cos( (angles/360) * (math.pi*2) )
+            y = particle_y + np.array(measurements_theta_distance)[:,1] * np.sin( (angles/360) * (math.pi*2) )
+            print(x)
+            print(y)
+            
+            #todo: create an occupency grid and put 1 where there is a point
+            self.last_map = np.zeros((len(x),2))
+            self.last_map[:,0] = x
+            self.last_map[:,1] = y
+            
             #Now find the difference between the transformed measurements and the occupency_grid
             pass
 

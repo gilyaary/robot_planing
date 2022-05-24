@@ -28,6 +28,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
         print('b_matrix', b_matrix) #y points of intersection
 
     angle_distance = []
+    robot_change_degrees = []
 
     for i in range(0, 180):
         dt = i/180 * (math.pi*2)
@@ -107,16 +108,20 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
             print('distances to closest object', distance_to_closest_object)
         
         robot_degrees = (((current_robot_theta)/(math.pi*2)) * 360)%360
+        change_in_degrees = 0
+
         if distance_to_closest_object < 200:
             #print( '{:0.2f} degrees => {:0.2f}'.format(robot_degrees, distance_to_closest_object) )
-            change_in_degrees = (1-dt/(math.pi*2)) * 360
+            #Because of the axis we get degress reversed - flowing clockwise instead of counter-clock
+            change_in_degrees = (dt/(math.pi*2)) * 360
             print( '{:0.2f} degrees => {:0.2f}'.format(change_in_degrees, distance_to_closest_object) )
         angle_distance.append([robot_degrees, distance_to_closest_object])
+        robot_change_degrees.append([change_in_degrees, distance_to_closest_object])
         #print('##########################\n')
     #for x in angle_distance:
     #    print( '{:0.2f} degrees => {:0.2f}'.format(x[0], x[1]) )
     #    pass
-    return angle_distance
+    return angle_distance, robot_change_degrees
 
 robot_xy = np.array([7,3])
 robot_theta = (0 / 360) * 2 * math.pi
