@@ -36,48 +36,57 @@ slam = None
 
 def cb(key, wm):
     print_grid = False
-    angle_to_distance = wm.get_angle_distances()    
-    
-    #if not slam.map_initialized:
-    slam.add_to_map(angle_to_distance)
-    
-    
     #wm.print_occupency_grid(slam.occupency_grid)
-    print('calling print_occupency_grid')
+    #print('calling print_occupency_grid')
     
-    print('callback called with Key: ' + key) 
+    ok = False
+
+    #print('callback called with Key: ' + key) 
     x,y,theta = wm.get_robot()
     if key == 'left':
         wm.move_robot_by(-20 , 0, 0)
+        ok = True
         #wm.move_left(10)
     if key == 'right':
         wm.move_robot_by(20, 0, 0)
         #wm.move_right(10)
+        ok = True
     if key == 'down':
         wm.move_robot_by(0, - 20, 0)
         #wm.move_up(10)
+        ok = True
     if key == 'up':
         wm.move_robot_by(0, 20, 0)
         #wm.move_down(10)
+        ok = True
     if key == "A":
-        print_grid = True
+        wm.display_world2(slam.locations, True)
+        
+    if ok == False:
+        return
 
+    # angle_to_distance = wm.get_angle_distances()    
+    # if not slam.map_initialized:
+    #     #Initial reading
+    #     slam.add_to_map(angle_to_distance)
+    
+    
     robot_x, robot_y, robot_theta = wm.get_odom()
     angle_to_distance = wm.get_angle_distances()
 
     slam.process_location_change(robot_x, robot_y, robot_theta, angle_to_distance)
-    wm.add_particles(slam.get_particles())
-    wm.add_slam_map(slam.get_last_map()) #lets show this as a map on top later
+    #wm.add_particles(slam.get_particles())
+    #wm.add_slam_map(slam.get_last_map()) #lets show this as a map on top later
 
-    wm.display_world2(slam.occupency_grid, print_grid)
+    wm.display_world2(slam.locations, True)
 
-    print('Robot Odom: ', robot_x, robot_y, robot_theta)
+    #print('Robot Odom: ', robot_x, robot_y, robot_theta)
     
 
 initial_x = 100
 initial_y = 100
 initial_theta=0 
-number_of_particles = 1
+number_of_particles = 10000
 slam = GilSlam(initial_x, initial_y, initial_theta, number_of_particles, w, h)
 wm = WorldMap(w,h, cb)
 

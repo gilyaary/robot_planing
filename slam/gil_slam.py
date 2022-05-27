@@ -1,7 +1,8 @@
 import math
 import numpy as np
 import random
-
+import matplotlib.pyplot as plt
+import pygame
 '''
     Mapping
     1. Start with 10000 particles centered at starting location - particles have similar or identical x,y and pose
@@ -50,6 +51,8 @@ class GilSlam:
         self.w = w
         self.h = h
         self.occupency_grid = np.zeros((w,h))
+        self.locations = dict()
+        
         self.map_initialized = False
 
         self.last_map = []
@@ -60,11 +63,11 @@ class GilSlam:
         #self.particles = np.zeros((number_of_particles,4))
         self.particles = []
         
-        mu, sigma = self.last_odom_x, 0.5 # mean and standard deviation
+        mu, sigma = self.last_odom_x, 1 # mean and standard deviation
         x_values = np.random.normal(mu, sigma, number_of_particles)
-        mu, sigma = self.last_odom_y, 0.5 # mean and standard deviation
+        mu, sigma = self.last_odom_y, 1 # mean and standard deviation
         y_values = np.random.normal(mu, sigma, number_of_particles)
-        mu, sigma = initial_theta, 0.5 # mean and standard deviation
+        mu, sigma = initial_theta, 1 # mean and standard deviation
         theta_values = np.random.normal(mu, sigma, number_of_particles)
 
         #self.particles[:,0] = x_values
@@ -76,7 +79,8 @@ class GilSlam:
         #self.particles[:,2] = theta_values
         
         for i in range (0, number_of_particles):
-            self.particles.append(Particle(x_values[i], y_values[i], theta_values[i]))
+            #self.particles.append(Particle(x_values[i], y_values[i], theta_values[i]))
+            self.particles.append(Particle(self.last_odom_x, self.last_odom_y, self.last_odom_theta))
 
         #print(self.particles)
 
@@ -100,8 +104,8 @@ class GilSlam:
         angles = self.last_odom_theta + np.array(measurements_theta_distance)[:,0]
         x = self.last_odom_x + np.array(measurements_theta_distance)[:,1] * np.cos( (angles/360) * (math.pi*2) )
         y = self.last_odom_y + np.array(measurements_theta_distance)[:,1] * np.sin( (angles/360) * (math.pi*2) )
-        for i in range (0, len(x)):
-            self.occupency_grid[int(x[i]),int(y[i])] = 1
+        # for i in range (0, len(x)):
+        #     self.occupency_grid[int(x[i]),int(y[i])] = 1
             
         
         self.map_initialized = True
@@ -112,18 +116,39 @@ class GilSlam:
         dx = odom_robot_x - self.last_odom_x
         dy = odom_robot_y - self.last_odom_y
         d_theta = odom_robot_theta - self.last_odom_theta
+        #print('slam_dx dy', dx, dy)
+        
         self.last_odom_x = odom_robot_x
         self.last_odom_y = odom_robot_y
         self.last_odom_theta = odom_robot_theta
+
+        #print('slam_odom', self.last_odom_x, self.last_odom_y)
+
         # Step 1: Update location belief based on odometry changes. We shift the belief per odom changes but we also
         # add some noise to all areas (flatten due to uncertainty and noise in odom)
          
-        mu, sigma = dx, 0 # mean and standard deviation
+        mu, sigma = dx, 3 # mean and standard deviation
         x_values = np.random.normal(mu, sigma, self.number_of_particles)
-        mu, sigma = dy, 0 # mean and standard deviation
+        mu, sigma = dy, 3 # mean and standard deviation
         y_values = np.random.normal(mu, sigma, self.number_of_particles)
-        mu, sigma = d_theta, 0 # mean and standard deviation
+        mu, sigma = d_theta, 2 # mean and standard deviation
         theta_values = np.random.normal(mu, sigma, self.number_of_particles)
+        
+        #self.process_weight_map()
+        #print(self.occupency_grid[95:105, 95:105])
+        weight_map = np.zeros((self.w,self.h))
+        #weight_map += self.occupency_grid
+        for key in self.locations:
+            weight_map[key[0], key[1]] = 1 
+        
+        for i in range(0,5):
+            weight_map[0:self.w-2, :] += weight_map[1:self.w-1, :]*0.1
+            weight_map[2:self.w, :] += weight_map[1:self.w-1, :]*0.1
+            
+            weight_map[:, 0:self.h-2] += weight_map[:, 1:self.h-1]*0.1
+            weight_map[:, 2:self.h] += weight_map[:, 1:self.h-1]*0.2
+
+        #print(np.array(weight_map[95:105, 95:105]))    
         
         # self.particles[:,0] += x_values
         # self.particles[:,1] += y_values
@@ -131,8 +156,8 @@ class GilSlam:
         
         for i in range(len(self.particles)):
             self.particles[i].x += x_values[i]
-            self.particles[i].y += x_values[i]
-            self.particles[i].theta += x_values[i]
+            self.particles[i].y += y_values[i]
+            self.particles[i].theta += theta_values[i]
 
         #mask = (self.particles >= 0) * 1
         #self.particles *= mask
@@ -151,13 +176,16 @@ class GilSlam:
         for angle_distance in angle_to_distance_map:
             angle = angle_distance[0]
             distance = angle_distance[1]
-            if not math.isnan(distance) and distance < 200:
+            if not math.isnan(distance) and distance < 200 and distance > 1:
                 #print(angle, distance)
                 measurements_theta_distance.append([angle,distance])
         #print(measurements_xy)
         
         if len(measurements_theta_distance) == 0:
             return
+
+        best_weight = -0.1
+        best_particle = None
 
         for particle in self.particles:
             # transform each measurement to world frame per robot pose
@@ -179,14 +207,29 @@ class GilSlam:
             #We save the location of objects (respective to each particle) in x,y vectors
             # Only measurements in range are considered.
             #In mapping we will choose the most likely particle and save their x,y points (from the vectors) in the occupency grid
-            angles = particle_theta + np.array(measurements_theta_distance)[:,0]
-            x = particle_x + np.array(measurements_theta_distance)[:,1] * np.cos( (angles/360) * (math.pi*2) )
-            y = particle_y + np.array(measurements_theta_distance)[:,1] * np.sin( (angles/360) * (math.pi*2) )
+            mtd = np.array(measurements_theta_distance)
+            angles = particle_theta + mtd[:,0]
+            dist = mtd[:,1]
+            #print(dist)
+            #print('particle xy', particle_x, particle_y)
+            
+            x = particle_x + dist * np.cos( (angles/360) * (math.pi*2) )
+            y = particle_y + dist  * np.sin( (angles/360) * (math.pi*2) )
             #print(x)
             #print(y)
+            
+            
+            
+            
+            #print(measurements_theta_distance)
             particle.set_transformed_measurements_xy(x,y)
-            
-            
+
+            weight = 111110
+            for i in range(len(x)):
+                xx = int (x[i])
+                yy = int (y[i])
+                weight += weight_map[xx,yy]
+            #print(weight)    
 
             #todo: create an occupency grid and put 1 where there is a point
             #self.last_map = np.zeros((len(x),2))
@@ -194,12 +237,21 @@ class GilSlam:
             #self.last_map[:,1] = y
             
             #Now find the difference between the transformed measurements and the occupency_grid
-            particle.set_weight(0)
+            particle.set_weight(weight)
+            if weight > best_weight:
+                best_weight = weight
+                best_particle = particle
+        
+        if best_particle is not None:
+            #self.occupency_grid *= 0
+            xxx = best_particle.transformed_measured_points_x_locations
+            yyy = best_particle.transformed_measured_points_y_locations
 
+            for i in range (0, len(xxx)):
+                x, y = int(xxx[i]),int(yyy[i])
+                self.locations[(x,y)] = 1
+             
 
-
-
-            pass
 
 '''
 initial_x = 50

@@ -22,7 +22,7 @@ class WorldMap:
     def __init__(self, w, h, cb):
         #print("init")
         self.cb = cb
-        print('callback set: ', self.cb)
+        #print('callback set: ', self.cb)
         self.w = w
         self.h = h
         
@@ -52,8 +52,8 @@ class WorldMap:
             
         #self.rectangles.append((150,170,100,120))
         #self.rectangles.append((1000,1200,10,10))
-        self.rectangles.append((0,0,50,50))
-        self.rectangles.append((w-50,h-50,50,60))
+        self.rectangles.append((50,50,50,50))
+        self.rectangles.append((w-100,h-100,50,50))
 
         self.display_world(True)
 
@@ -70,7 +70,8 @@ class WorldMap:
         #If we get an error that keeps on growing and do not identify, quantify and compensate for it the inaccuracy gets worse
         self.odom_robot_x  += dx + (random.random() * 5 ) * random.randint(-1,1)
         self.odom_robot_y  += dy + (random.random() * 5 ) * random.randint(-1,1)
-        self.odom_robot_theta  += d_theta + (random.random() * 3 ) * random.randint(-1,1)
+        self.odom_robot_theta  += d_theta + (random.random() * 2 ) * random.randint(-1,1)
+        print('robot_loc', self.robot_x, self.robot_y)
 
     def get_robot(self):
         return self.robot_x, self.robot_y, self.robot_theta
@@ -88,8 +89,8 @@ class WorldMap:
     def add_slam_map(self, slam_map):
         self.slam_map = slam_map
 
-    def display_world2(self, occupency_grid, draw_grid):    
-        print('print_occupency_grid') 
+    def display_world2(self, locations, draw_grid):    
+        #print('print_occupency_grid') 
         robot_x = self.robot_x
         robot_y = self.robot_y
         self.ax.clear()
@@ -98,7 +99,7 @@ class WorldMap:
         self.draw_sensor_reads()
         self.draw_slam_map()
         if draw_grid:
-            self.draw_grid(occupency_grid)
+            self.draw_grid(locations)
         self.fig.canvas.draw()
 
     def display_world(self, Redraw = False):
@@ -157,15 +158,18 @@ class WorldMap:
             #print('particle', p)
             self.draw_circle(p[0], p[1], 2, 'b')
 
-    def draw_grid(self, occupency_grid):
-        print('print_grid')
+    def draw_grid(self, locations):
+        #print('print_grid')
         #print(occupency_grid)
-        shape = occupency_grid.shape
-        for row in range (shape[0]):
-            for col in range (shape[1]):
-                if occupency_grid[row,col] == 1:
-                    self.draw_circle(row, col, 2, (0,1,1))                    
-        #pass    
+        # shape = occupency_grid.shape
+        # for row in range (shape[0]):
+        #     for col in range (shape[1]):
+        #         if occupency_grid[row,col] == 1:
+        #             #print('row,col', row, col)
+        #             self.draw_circle(row, col, 2, (0,1,1))                    
+        for key in locations:
+            self.draw_circle(key[0], key[1], 2, (0,1,1))
+        pass    
 
     def draw_slam_map(self):
         for p in self.slam_map:
@@ -188,24 +192,7 @@ class WorldMap:
     
     def draw_sensor_reads(self):
         #self.rectangles.append((x,y,w,h))
-        lines = []
-        for rect in self.rectangles:
-            x = rect[0]
-            y = rect[1]
-            w = rect[2]
-            h = rect[3]
-            #print(x,y,w,h)
-            lines.append([x,y,x+w,y])
-            lines.append([x,y,x,y+h])
-            lines.append([x,y+h,x+w,y+h])
-            lines.append([x+w,y,x+w,y+h])
-
-        
-
-        #self.robot_x, self.robot_y, self.robot_theta            
-        self.angle_distance, self.robot_change_degrees = find_closest_intersecting_line([self.robot_x, self.robot_y], self.robot_theta, np.array(lines))
-        
-        print('##################\n',self.robot_x, self.robot_y)
+        #print('##################\n',self.robot_x, self.robot_y)
         for x in self.angle_distance:
             #max range is 300
             if not math.isnan(x[1]) and x[1] < 200:
@@ -222,6 +209,28 @@ class WorldMap:
         return self.odom_robot_x, self.odom_robot_y, self.odom_robot_theta
         
     def get_angle_distances(self):
-        return self.robot_change_degrees
+        
+        lines = []
+        for rect in self.rectangles:
+            x = rect[0]
+            y = rect[1]
+            w = rect[2]
+            h = rect[3]
+            #print(x,y,w,h)
+            lines.append([x,y,x+w,y])
+            lines.append([x,y,x,y+h])
+            lines.append([x,y+h,x+w,y+h])
+            lines.append([x+w,y,x+w,y+h])
+
+        self.angle_distance, self.robot_change_degrees = find_closest_intersecting_line([self.robot_x, self.robot_y], self.robot_theta, np.array(lines))
+
+        for angle_distance in self.angle_distance:
+            angle = angle_distance[0]
+            distance = angle_distance[1]
+            #if not math.isnan(distance) and distance < 200 and distance > 1:
+            #    print(angle, distance)
+            #self.robot_x, self.robot_y, self.robot_theta            
+
+        return self.angle_distance
 
 

@@ -94,7 +94,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
             print('distances', distances)
         #print('distances', distances)
 
-        proximities = (1 / (distances)) * mask
+        proximities = (1 / (distances+SMALL_VALUE)) * mask
         if debug:
             print ('proximities', proximities * mask) 
         
@@ -114,7 +114,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
             #print( '{:0.2f} degrees => {:0.2f}'.format(robot_degrees, distance_to_closest_object) )
             #Because of the axis we get degress reversed - flowing clockwise instead of counter-clock
             change_in_degrees = (dt/(math.pi*2)) * 360
-            print( '{:0.2f} degrees => {:0.2f}'.format(change_in_degrees, distance_to_closest_object) )
+            #print( '{:0.2f} degrees => {:0.2f}'.format(change_in_degrees, distance_to_closest_object) )
         angle_distance.append([robot_degrees, distance_to_closest_object])
         robot_change_degrees.append([change_in_degrees, distance_to_closest_object])
         #print('##########################\n')
