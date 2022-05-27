@@ -88,6 +88,19 @@ class WorldMap:
     def add_slam_map(self, slam_map):
         self.slam_map = slam_map
 
+    def display_world2(self, occupency_grid, draw_grid):    
+        print('print_occupency_grid') 
+        robot_x = self.robot_x
+        robot_y = self.robot_y
+        self.ax.clear()
+        self.draw_circle(robot_x, robot_y, 20, 'y')
+        self.draw_objects()
+        self.draw_sensor_reads()
+        self.draw_slam_map()
+        if draw_grid:
+            self.draw_grid(occupency_grid)
+        self.fig.canvas.draw()
+
     def display_world(self, Redraw = False):
         #print(self.grid)
         #image = self.grid.copy()
@@ -110,26 +123,12 @@ class WorldMap:
             self.draw_circle(robot_x, robot_y, 20, 'y')
             self.draw_sensor_reads()
             self.draw_objects()
-            self.draw_particles()
+            #self.draw_particles()
             #self.ax.imshow(image.transpose())
 
             #plt.gca().invert_yaxis()
             plt.show()
-        else:
-            robot_x = self.robot_x
-            robot_y = self.robot_y
-            #image[robot_x:robot_x+30, robot_y:robot_y+30] = 150
-            self.ax.clear()
-            #self.ax.imshow(np.flip(image.transpose(), 0))
-            self.draw_circle(robot_x, robot_y, 20, 'y')
-            self.draw_objects()
-            self.draw_sensor_reads()
-            self.draw_particles()
-            self.draw_slam_map()
-            #self.ax.imshow(image.transpose())
-            
-            #plt.gca().invert_yaxis()
-            self.fig.canvas.draw()
+        
 
     def draw_objects(self):
         PINK = (1.0, 0.47, 0.42)
@@ -157,6 +156,16 @@ class WorldMap:
         for p in self.particles:
             #print('particle', p)
             self.draw_circle(p[0], p[1], 2, 'b')
+
+    def draw_grid(self, occupency_grid):
+        print('print_grid')
+        #print(occupency_grid)
+        shape = occupency_grid.shape
+        for row in range (shape[0]):
+            for col in range (shape[1]):
+                if occupency_grid[row,col] == 1:
+                    self.draw_circle(row, col, 2, (0,1,1))                    
+        #pass    
 
     def draw_slam_map(self):
         for p in self.slam_map:

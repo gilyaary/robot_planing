@@ -32,11 +32,17 @@ slam = None
 # We should get the odomtry for the world_map and give it commands to move right, left, up and down
 # We then get back odometry with the estimated location (the map knows the real location and pose)
 # We use the odometry to recalculate the prior for location hypothesis
- 
-    
+
 
 def cb(key, wm):
-    #print('callback called with Key: ' + key) 
+    print_grid = False
+    angle_to_distance = wm.get_angle_distances()    
+    if not slam.map_initialized:
+        slam.init_map(angle_to_distance)
+    #wm.print_occupency_grid(slam.occupency_grid)
+    print('calling print_occupency_grid')
+    
+    print('callback called with Key: ' + key) 
     x,y,theta = wm.get_robot()
     if key == 'left':
         wm.move_robot_by(-20 , 0, 0)
@@ -44,22 +50,23 @@ def cb(key, wm):
     if key == 'right':
         wm.move_robot_by(20, 0, 0)
         #wm.move_right(10)
-    if key == 'up':
+    if key == 'down':
         wm.move_robot_by(0, - 20, 0)
         #wm.move_up(10)
-    if key == 'down':
+    if key == 'up':
         wm.move_robot_by(0, 20, 0)
         #wm.move_down(10)
-    
+    if key == "A":
+        print_grid = True
+
     robot_x, robot_y, robot_theta = wm.get_odom()
     angle_to_distance = wm.get_angle_distances()
 
-    slam.process_location_change(robot_x,robot_y,robot_theta, angle_to_distance)
+    slam.process_location_change(robot_x, robot_y, robot_theta, angle_to_distance)
     wm.add_particles(slam.get_particles())
     wm.add_slam_map(slam.get_last_map()) #lets show this as a map on top later
 
-    wm.display_world(False)
-
+    wm.display_world2(slam.occupency_grid, print_grid)
 
     print('Robot Odom: ', robot_x, robot_y, robot_theta)
     
@@ -74,6 +81,4 @@ wm = WorldMap(w,h, cb)
     #wm.get_pose_from_odometry()
     #wm.get_sensor_readings() #comes as distance from robot. For map we need to translate to world map coordinates
     #Now update the location hypothesis and SAVE the sensor data. 
-
-     
 
