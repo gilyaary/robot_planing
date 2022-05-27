@@ -37,8 +37,11 @@ slam = None
 def cb(key, wm):
     print_grid = False
     angle_to_distance = wm.get_angle_distances()    
-    if not slam.map_initialized:
-        slam.init_map(angle_to_distance)
+    
+    #if not slam.map_initialized:
+    slam.add_to_map(angle_to_distance)
+    
+    
     #wm.print_occupency_grid(slam.occupency_grid)
     print('calling print_occupency_grid')
     

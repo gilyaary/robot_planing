@@ -87,7 +87,7 @@ class GilSlam:
     def get_last_map(self):
         return self.last_map
 
-    def init_map(self, angle_to_distance_map):
+    def add_to_map(self, angle_to_distance_map):
         #initial occupency grid
         measurements_theta_distance = []
         for angle_distance in angle_to_distance_map:
@@ -95,6 +95,8 @@ class GilSlam:
             distance = angle_distance[1]
             if not math.isnan(distance) and distance < 200:
                 measurements_theta_distance.append([angle,distance])
+        if len(measurements_theta_distance) == 0:
+            return
         angles = self.last_odom_theta + np.array(measurements_theta_distance)[:,0]
         x = self.last_odom_x + np.array(measurements_theta_distance)[:,1] * np.cos( (angles/360) * (math.pi*2) )
         y = self.last_odom_y + np.array(measurements_theta_distance)[:,1] * np.sin( (angles/360) * (math.pi*2) )

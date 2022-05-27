@@ -68,9 +68,9 @@ class WorldMap:
  
         #TODO: Add error to odometry changes
         #If we get an error that keeps on growing and do not identify, quantify and compensate for it the inaccuracy gets worse
-        self.odom_robot_x  += dx + (random.random() * 1 ) * random.randint(-1,1)
-        self.odom_robot_y  += dy + (random.random() * 1 ) * random.randint(-1,1)
-        self.odom_robot_theta  += d_theta + (random.random() * 1 ) * random.randint(-1,1)
+        self.odom_robot_x  += dx + (random.random() * 5 ) * random.randint(-1,1)
+        self.odom_robot_y  += dy + (random.random() * 5 ) * random.randint(-1,1)
+        self.odom_robot_theta  += d_theta + (random.random() * 3 ) * random.randint(-1,1)
 
     def get_robot(self):
         return self.robot_x, self.robot_y, self.robot_theta
