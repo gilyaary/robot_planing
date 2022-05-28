@@ -19,20 +19,20 @@ blue = (0,0,255)
 NUMBER_OF_OBJECTS = 25
 
 class WorldMap:
-    def __init__(self, w, h, cb):
+    def __init__(self, w, h, robot_x, robot_y, robot_theta, cb):
         #print("init")
         self.cb = cb
         #print('callback set: ', self.cb)
         self.w = w
         self.h = h
         
-        self.robot_x  = 100
-        self.robot_y  = 100
-        self.robot_theta  = 0
+        self.robot_x  = robot_x
+        self.robot_y  = robot_y
+        self.robot_theta  = robot_theta
 
-        self.odom_robot_x  = 100
-        self.odom_robot_y  = 100
-        self.odom_robot_theta  = 0
+        self.odom_robot_x  = robot_x
+        self.odom_robot_y  = robot_y
+        self.odom_robot_theta  = robot_theta
 
         #self.grid = []
         #self.grid = np.zeros((w,h))
@@ -55,8 +55,11 @@ class WorldMap:
         self.rectangles.append((50,50,50,50))
         self.rectangles.append((w-100,h-100,50,50))
 
-        self.display_world(True)
+        
 
+    def init_graphics(self):
+        self.display_world(True)
+    
     #theta is degrees
     #TODO: we need to simulate control not exact location
     #Thus we should have to get command such as right motor, left motor voltage which
@@ -68,9 +71,9 @@ class WorldMap:
  
         #TODO: Add error to odometry changes
         #If we get an error that keeps on growing and do not identify, quantify and compensate for it the inaccuracy gets worse
-        self.odom_robot_x  += dx + (random.random() * 5 ) * random.randint(-1,2)
-        self.odom_robot_y  += dy + (random.random() * 5 ) * random.randint(-1,2)
-        self.odom_robot_theta  += d_theta + (random.random() * 2 ) * random.randint(-1,1)
+        self.odom_robot_x  += dx + (random.random() * 2 ) * random.randint(0,2)
+        self.odom_robot_y  += dy + (random.random() * 2 ) * random.randint(0,2)
+        self.odom_robot_theta  += d_theta + (random.random() * 1 ) * random.randint(-1,1)
         print('robot_loc', self.robot_x, self.robot_y)
 
     def get_robot(self):
@@ -156,9 +159,10 @@ class WorldMap:
         self.ax.add_patch(circle)
 
     def draw_particles(self):
-        for p in self.particles:
-            self.draw_circle(p.x, p.y, 2, 'b')
-            break
+        if self.particles:
+            for p in self.particles:
+                self.draw_circle(p.x, p.y, 2, 'b')
+                #break
 
     def draw_grid(self, locations):
         #print('print_grid')

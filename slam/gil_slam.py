@@ -27,6 +27,8 @@ class Particle:
         self.x = x
         self.y = y
         self.theta = theta
+        self.weight = 0
+        self.start_end = (0,0)
         pass
 
     #these are the measurements after we transformed them to the reference frame
@@ -59,15 +61,16 @@ class GilSlam:
         self.particles = []
         self.number_of_particles = number_of_particles
         
-        mu, sigma = self.last_odom_x, 1 # mean and standard deviation
-        x_values = np.random.normal(mu, sigma, number_of_particles)
-        mu, sigma = self.last_odom_y, 1 # mean and standard deviation
-        y_values = np.random.normal(mu, sigma, number_of_particles)
-        mu, sigma = initial_theta, 1 # mean and standard deviation
-        theta_values = np.random.normal(mu, sigma, number_of_particles)
+        # mu, sigma = self.last_odom_x, 0 # mean and standard deviation
+        # x_values = np.random.normal(mu, sigma, number_of_particles)
+        # mu, sigma = self.last_odom_y, 0 # mean and standard deviation
+        # y_values = np.random.normal(mu, sigma, number_of_particles)
+        # mu, sigma = initial_theta, 0 # mean and standard deviation
+        # theta_values = np.random.normal(mu, sigma, number_of_particles)
 
         for i in range (0, self.number_of_particles):
-            self.particles.append(Particle(x_values[i], y_values[i], theta_values[i]))
+            #self.particles.append(Particle(x_values[i], y_values[i], theta_values[i]))
+            self.particles.append(Particle(initial_x, initial_y, initial_theta))
 
     #1700,900,360 width, height, angles
     def get_particles(self):
@@ -89,6 +92,8 @@ class GilSlam:
         angles = self.last_odom_theta + np.array(measurements_theta_distance)[:,0]
         x = self.last_odom_x + np.array(measurements_theta_distance)[:,1] * np.cos( (angles/360) * (math.pi*2) )
         y = self.last_odom_y + np.array(measurements_theta_distance)[:,1] * np.sin( (angles/360) * (math.pi*2) )
+        for i in range(len(x)):
+            self.locations[(int(x[i]),int(y[i]))] = 1
         self.map_initialized = True
 
     
@@ -106,23 +111,23 @@ class GilSlam:
         # Step 1: Update location belief based on odometry changes. We shift the belief per odom changes but we also
         # add some noise to all areas (flatten due to uncertainty and noise in odom)
          
-        mu, sigma = dx, 3 # mean and standard deviation
+        mu, sigma = dx, 5 # mean and standard deviation
         x_values = np.random.normal(mu, sigma, self.number_of_particles)
-        print(x_values)
-        mu, sigma = dy, 3 # mean and standard deviation
+        #print(x_values)
+        mu, sigma = dy, 5 # mean and standard deviation
         y_values = np.random.normal(mu, sigma, self.number_of_particles)
-        mu, sigma = d_theta, 2 # mean and standard deviation
+        mu, sigma = d_theta, 1 # mean and standard deviation
         theta_values = np.random.normal(mu, sigma, self.number_of_particles)
         weight_map = np.zeros((self.w,self.h))
         for key in self.locations:
             weight_map[key[0], key[1]] = 1 
         
         for i in range(0,5):
-            weight_map[0:self.w-2, :] += weight_map[1:self.w-1, :]*0.1
-            weight_map[2:self.w, :] += weight_map[1:self.w-1, :]*0.1
+            weight_map[0:self.w-2, :] += weight_map[1:self.w-1, :]*0.01
+            weight_map[2:self.w, :] += weight_map[1:self.w-1, :]*0.01
             
-            weight_map[:, 0:self.h-2] += weight_map[:, 1:self.h-1]*0.1
-            weight_map[:, 2:self.h] += weight_map[:, 1:self.h-1]*0.2
+            weight_map[:, 0:self.h-2] += weight_map[:, 1:self.h-1]*0.01
+            weight_map[:, 2:self.h] += weight_map[:, 1:self.h-1]*0.01
 
         for i in range(len(self.particles)):
             self.particles[i].x += x_values[i]
@@ -151,6 +156,7 @@ class GilSlam:
 
         best_weight = -0.1
         best_particle = None
+        total_weight = 0
 
         for particle in self.particles:
             # transform each measurement to world frame per robot pose
@@ -172,29 +178,64 @@ class GilSlam:
             x = particle_x + dist * np.cos( (angles/360) * (math.pi*2) )
             y = particle_y + dist  * np.sin( (angles/360) * (math.pi*2) )
             particle.set_transformed_measurements_xy(x,y)
-            weight = 111110
+            weight = 0
             for i in range(len(x)):
                 xx = int (x[i])
                 yy = int (y[i])
                 weight += weight_map[xx,yy]
             #Now find the difference between the transformed measurements and the occupency_grid
+            total_weight += weight
             particle.set_weight(weight)
+            
             if weight > best_weight:
+                #print('Best particle weight', weight)
                 best_weight = weight
                 best_particle = particle
         
         if best_particle is not None:
-            xxx = best_particle.transformed_measured_points_x_locations
-            yyy = best_particle.transformed_measured_points_y_locations
-            #Add the particle's projected map to the reference map
-            for i in range (0, len(xxx)):
-                x, y = int(xxx[i]),int(yyy[i])
-                self.locations[(x,y)] = 1
+            average_weight = total_weight / len(self.particles)
+            print(average_weight)
+            #only add to the map if this is the particle's weight is high
+            if best_particle.weight > (average_weight * 10):
+                print('Best Particle Weight', best_particle.weight)
+                xxx = best_particle.transformed_measured_points_x_locations
+                yyy = best_particle.transformed_measured_points_y_locations
+                #Add the particle's projected map to the reference map
+                for i in range (0, len(xxx)):
+                    x, y = int(xxx[i]),int(yyy[i])
+                    self.locations[(x,y)] = 1
+        #End of for loop that sets weight for each particle
             
-            self.particles = []
-            for i in range (0, self.number_of_particles):
-                self.particles.append(Particle(best_particle.x, best_particle.y, best_particle.theta))
+        #resample with "replacement" by weight
+        startpoint = 0
+        for particle in self.particles:
+            endpoint = startpoint+particle.weight/total_weight
+            particle.start_end = (startpoint, endpoint)
+            startpoint = endpoint
+        selected = np.random.random(size=len(self.particles))
+        new_particles = []
+        for selected in selected:
+            for particle in self.particles:
+                start, end = particle.start_end
+                if selected > start and selected <= end:
+                    new_particles.append(Particle(particle.x,particle.y,particle.theta))
+        self.particles = new_particles
+                
+                
+        '''
+        self.particles = []
+        mu, sigma = best_particle.x, 5 # mean and standard deviation
+        x_values = np.random.normal(mu, sigma, self.number_of_particles)
+        mu, sigma = best_particle.y, 5 # mean and standard deviation
+        y_values = np.random.normal(mu, sigma, self.number_of_particles)
+        mu, sigma = best_particle.theta, 2 # mean and standard deviation
+        theta_values = np.random.normal(mu, sigma, self.number_of_particles)
+        for i in range (0, self.number_of_particles):
+            self.particles.append(Particle(x_values[i], y_values[i], theta_values[i]))
+        '''
 
+
+        #return self.particles
 
 '''
 initial_x = 50

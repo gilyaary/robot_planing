@@ -33,7 +33,6 @@ slam = None
 # We then get back odometry with the estimated location (the map knows the real location and pose)
 # We use the odometry to recalculate the prior for location hypothesis
 
-
 def cb(key, wm):
     ok = False
     if key == 'left':
@@ -61,14 +60,20 @@ def cb(key, wm):
     robot_x, robot_y, robot_theta = wm.get_odom()
     angle_to_distance = wm.get_angle_distances()
 
-    slam.process_location_change(robot_x, robot_y, robot_theta, angle_to_distance)
+    old_particles = slam.process_location_change(robot_x, robot_y, robot_theta, angle_to_distance)
     wm.add_particles(slam.get_particles())
-    wm.display_world2(slam.locations, False)
+    wm.display_world2(slam.locations, True)
     #print('Robot Odom: ', robot_x, robot_y, robot_theta)
     
-initial_x = 100
-initial_y = 100
+# NUMBER OF PARTICLES
+number_of_particles = 1000
+
+initial_x = 110
+initial_y = 110
 initial_theta=0 
-number_of_particles = 10000
+wm = WorldMap(w,h, initial_x, initial_y, initial_theta, cb)
+angle_to_distance = wm.get_angle_distances()
 slam = GilSlam(initial_x, initial_y, initial_theta, number_of_particles, w, h)
-wm = WorldMap(w,h, cb)
+slam.add_to_map(angle_to_distance)
+wm.init_graphics()
+wm.display_world2(slam.locations, True)        
