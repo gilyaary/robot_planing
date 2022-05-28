@@ -122,7 +122,7 @@ class GilSlam:
         for key in self.locations:
             weight_map[key[0], key[1]] = 1 
         
-        for i in range(0,5):
+        for i in range(0,2):
             weight_map[0:self.w-2, :] += weight_map[1:self.w-1, :]*0.01
             weight_map[2:self.w, :] += weight_map[1:self.w-1, :]*0.01
             
@@ -196,7 +196,7 @@ class GilSlam:
             average_weight = total_weight / len(self.particles)
             print(average_weight)
             #only add to the map if this is the particle's weight is high
-            if best_particle.weight > (average_weight * 10):
+            if best_particle.weight > (average_weight * 2):
                 print('Best Particle Weight', best_particle.weight)
                 xxx = best_particle.transformed_measured_points_x_locations
                 yyy = best_particle.transformed_measured_points_y_locations
