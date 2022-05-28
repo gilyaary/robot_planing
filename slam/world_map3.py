@@ -68,8 +68,8 @@ class WorldMap:
  
         #TODO: Add error to odometry changes
         #If we get an error that keeps on growing and do not identify, quantify and compensate for it the inaccuracy gets worse
-        self.odom_robot_x  += dx + (random.random() * 5 ) * random.randint(-1,1)
-        self.odom_robot_y  += dy + (random.random() * 5 ) * random.randint(-1,1)
+        self.odom_robot_x  += dx + (random.random() * 5 ) * random.randint(-1,2)
+        self.odom_robot_y  += dy + (random.random() * 5 ) * random.randint(-1,2)
         self.odom_robot_theta  += d_theta + (random.random() * 2 ) * random.randint(-1,1)
         print('robot_loc', self.robot_x, self.robot_y)
 
@@ -100,6 +100,8 @@ class WorldMap:
         self.draw_slam_map()
         if draw_grid:
             self.draw_grid(locations)
+        self.draw_particles()
+        self.draw_circle(self.odom_robot_x, self.odom_robot_y, 4, (1,1,0))
         self.fig.canvas.draw()
 
     def display_world(self, Redraw = False):
@@ -155,8 +157,8 @@ class WorldMap:
 
     def draw_particles(self):
         for p in self.particles:
-            #print('particle', p)
-            self.draw_circle(p[0], p[1], 2, 'b')
+            self.draw_circle(p.x, p.y, 2, 'b')
+            break
 
     def draw_grid(self, locations):
         #print('print_grid')
