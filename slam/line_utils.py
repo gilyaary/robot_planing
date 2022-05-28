@@ -35,7 +35,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
         current_robot_theta = robot_theta + dt     
         m_robot = math.tan(current_robot_theta)
         #print(m_robot)
-        
+
         # y = mx + b
         b_robot = robot_xy[1] - m_robot*robot_xy[0]
         #print(b_robot)
@@ -46,7 +46,7 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
             print('mrobot', m_robot)
             print('brobot', b_robot)
         
-        x_intersect = (b_robot - b_matrix) / ((m_matrix - m_robot)+SMALL_VALUE) # from equation for height
+        x_intersect = (b_robot - b_matrix) / ((m_matrix - m_robot)+SMALL_VALUE) # from equation for     height
         if debug:
             print('x_intersect', x_intersect)
         y_intersect = (m_robot * x_intersect) + b_robot # line formula applied with x_intersect on robot
@@ -63,11 +63,14 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
 
         #print('x_min, x_max, y_min, y_max', x_min, x_max, y_min, y_max)
         
-        point_in_lines_x = (x_intersect >= x_min)*1 * (x_intersect <= x_max)*1 # use in() function
-        point_in_lines_y = (y_intersect >= y_min)*1 * (y_intersect <= y_max)*1 # use in() function
+        #Without the 0.1 we get rays penetrating lines. The reason is the 90 degrees lines in rectangles
+        point_in_lines_x = (x_intersect >= x_min-0.1) * (x_intersect <= x_max+0.1) # use in() function
+        point_in_lines_y = (y_intersect >= y_min-0.1) * (y_intersect <= y_max+0.1) # use in() function
+        
+        
         
         point_in_correct_direction = []
-        
+        #This is ok
         if current_robot_theta <= math.pi:
             point_in_correct_direction = y_intersect >= robot_xy[1] *1
         else:
@@ -82,6 +85,8 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
         else:
             point_in_correct_direction = x_intersect > robot_xy[0] * 1
 
+
+
         if debug:
             #print(point_in_lines_x)
             #print(point_in_lines_y)
@@ -89,19 +94,28 @@ def find_closest_intersecting_line(robot_xy, robot_theta, lines_matrix):
         mask = (point_in_lines_x * point_in_lines_y * point_in_correct_direction)
         #print(mask)
         
+        
+        
+        
         distances = np.sqrt((x_intersect-robot_xy[0])*(x_intersect-robot_xy[0]) + (y_intersect-robot_xy[1]) * (y_intersect-robot_xy[1]))
         if debug:
             print('distances', distances)
         #print('distances', distances)
-
+        
+        
+        
         proximities = (1 / (distances+SMALL_VALUE)) * mask
         if debug:
             print ('proximities', proximities * mask) 
-        
-        
         distance_to_closest_object = 1 / (np.max(proximities) + SMALL_VALUE)
-        #distance_to_closest_object = distances
-        
+        '''
+        distances *= mask
+        distance_to_closest_object = 1000000
+        for distance in distances:
+            if distance > 1 and distance is not None and distance < distance_to_closest_object:
+                distance_to_closest_object = distance
+        '''
+
         
         #we may also need the index of the closest line
         if debug:
