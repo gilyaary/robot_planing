@@ -123,7 +123,8 @@ class GilSlam:
             weight_map[key[0], key[1]] = 1 
         
         for i in range(0,2):
-            weight_map[0:self.w-2, :] += weight_map[1:self.w-1, :]*0.01
+            #These act as a learning rate
+            weight_map[0:self.w-2, :] += weight_map[1:self.w-1, :]*0.01 
             weight_map[2:self.w, :] += weight_map[1:self.w-1, :]*0.01
             
             weight_map[:, 0:self.h-2] += weight_map[:, 1:self.h-1]*0.01
@@ -156,7 +157,7 @@ class GilSlam:
 
         best_weight = -0.1
         best_particle = None
-        total_weight = 0
+        total_weight = 0.00000000000001
 
         for particle in self.particles:
             # transform each measurement to world frame per robot pose
@@ -196,7 +197,7 @@ class GilSlam:
             average_weight = total_weight / len(self.particles)
             print(average_weight)
             #only add to the map if this is the particle's weight is high
-            if best_particle.weight > (average_weight * 2):
+            if best_particle.weight > (average_weight * 3):
                 print('Best Particle Weight', best_particle.weight)
                 xxx = best_particle.transformed_measured_points_x_locations
                 yyy = best_particle.transformed_measured_points_y_locations
@@ -209,6 +210,7 @@ class GilSlam:
         #resample with "replacement" by weight
         startpoint = 0
         for particle in self.particles:
+            #print(particle.weight)
             endpoint = startpoint+particle.weight/total_weight
             particle.start_end = (startpoint, endpoint)
             startpoint = endpoint

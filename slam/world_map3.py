@@ -16,7 +16,7 @@ black = (0,0,0)
 red = (255,0,0)
 green = (0,255,0)
 blue = (0,0,255)
-NUMBER_OF_OBJECTS = 25
+NUMBER_OF_OBJECTS = 100
 
 class WorldMap:
     def __init__(self, w, h, robot_x, robot_y, robot_theta, cb):
@@ -71,8 +71,8 @@ class WorldMap:
  
         #TODO: Add error to odometry changes
         #If we get an error that keeps on growing and do not identify, quantify and compensate for it the inaccuracy gets worse
-        self.odom_robot_x  += dx + (random.random() * 2 ) * random.randint(0,2)
-        self.odom_robot_y  += dy + (random.random() * 2 ) * random.randint(0,2)
+        self.odom_robot_x  += dx + (random.random() * 2 ) * random.randint(-1,1)
+        self.odom_robot_y  += dy + (random.random() * 2 ) * random.randint(-1,1)
         self.odom_robot_theta  += d_theta + (random.random() * 1 ) * random.randint(-1,1)
         print('robot_loc', self.robot_x, self.robot_y)
 
@@ -101,9 +101,9 @@ class WorldMap:
         self.draw_objects()
         self.draw_sensor_reads()
         self.draw_slam_map()
-        if draw_grid:
+        if draw_grid: 
             self.draw_grid(locations)
-        self.draw_particles()
+            self.draw_particles()
         self.draw_circle(self.odom_robot_x, self.odom_robot_y, 4, (1,1,0))
         self.fig.canvas.draw()
 

@@ -62,7 +62,7 @@ def cb(key, wm):
 
     old_particles = slam.process_location_change(robot_x, robot_y, robot_theta, angle_to_distance)
     wm.add_particles(slam.get_particles())
-    wm.display_world2(slam.locations, True)
+    wm.display_world2(slam.locations, False)
     #print('Robot Odom: ', robot_x, robot_y, robot_theta)
     
 # NUMBER OF PARTICLES
