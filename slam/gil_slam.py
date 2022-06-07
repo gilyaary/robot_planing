@@ -111,12 +111,12 @@ class GilSlam:
         # Step 1: Update location belief based on odometry changes. We shift the belief per odom changes but we also
         # add some noise to all areas (flatten due to uncertainty and noise in odom)
          
-        mu, sigma = dx, 5 # mean and standard deviation
+        mu, sigma = dx, 15 # mean and standard deviation
         x_values = np.random.normal(mu, sigma, self.number_of_particles)
         #print(x_values)
-        mu, sigma = dy, 5 # mean and standard deviation
+        mu, sigma = dy, 15 # mean and standard deviation
         y_values = np.random.normal(mu, sigma, self.number_of_particles)
-        mu, sigma = d_theta, 1 # mean and standard deviation
+        mu, sigma = d_theta, 2 # mean and standard deviation
         theta_values = np.random.normal(mu, sigma, self.number_of_particles)
         weight_map = np.zeros((self.w,self.h))
         for key in self.locations:

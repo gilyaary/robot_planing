@@ -101,7 +101,7 @@ class WorldMap:
         self.draw_objects()
         self.draw_sensor_reads()
         self.draw_slam_map()
-        if draw_grid: 
+        if draw_grid and locations: 
             self.draw_grid(locations)
             self.draw_particles()
         self.draw_circle(self.odom_robot_x, self.odom_robot_y, 4, (1,1,0))
