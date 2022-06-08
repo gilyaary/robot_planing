@@ -81,9 +81,12 @@ class FrameStreamParser:
             measurement_item_index =  (self.current_frame_data_index-4) % 6
             #print ('---------------- measurement_item_index:', measurement_item_index)
             
+            '''
+            Bug :Caused data truncation !!!!
             if frame_set_measurement_index >= 60:
                 #error in data
                 return
+            '''
 
             if measurement_item_index == 0:
                 self.current_measurement_set[frame_set_measurement_index, 0] = value #intensity
