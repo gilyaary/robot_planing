@@ -14,6 +14,17 @@ startCount = 0
 
 def parser_callback (rpm, measurements):
     pass
+    angle = measurements[:,5]
+    #print(angle)
+    for i in range (0, len(angle)):
+        #if angle[i] == 180:
+        #    print(measurements[i, : ])
+        if angle[i] == 90:
+            print(measurements[i, : ])
+        #if angle[i] == 270:
+        #    print(measurements[i, : ])
+        #if angle[i] == 0:
+        #    print(measurements[i, : ])
 
 # open serial port with serial . 
 with serial.Serial ( '/dev/ttyUSB0' , 230400 ) as ser :

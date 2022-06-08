@@ -15,13 +15,14 @@ class FrameStreamParser:
 
     def __init__(self, callback):
         pass
-        self.current_measurement_set = np.zeros((60,6)) #60 measurements
-        self.current_frame_index = 9
+        self.current_measurement_set = np.zeros((360,2)) #360 measurements of intensity, distance
+        self.current_frame_index = 59
         self.current_frame_data_index = -1
         self.first_sync_found = False
         self.rpm = None
         self.callback = callback
         self.angle_index = 0
+        self.current_measurements = np.zeroes(4)
     
     def add(self, value):
         pass
@@ -32,8 +33,8 @@ class FrameStreamParser:
                 self.first_sync_found = True
         
         if value == FRAME_SYNC:
-            if self.current_frame_index == 9:
-                self.current_measurement_set = np.zeros((60,6)) #60 measurements
+            if self.current_frame_index == 59:
+                self.current_measurement_set = np.zeros((360,2)) #360 measurements of intensity, distance
                 self.current_frame_index = 0
                 self.current_frame_data_index = 0
             else:
@@ -43,12 +44,13 @@ class FrameStreamParser:
             return
         
         self.current_frame_data_index += 1
-        #print ('-----', self.current_frame_data_index)
+        #print ('-----', self.current_frame_data_index)intensity
         
         if self.current_frame_data_index == 1:
             #self.current_frame_data_index = value
             #print(value)
             self.angle_index = value
+            self.current_measurements = np.zeroes(4)
             pass
         elif self.current_frame_data_index == 2:
             pass #RPM
@@ -60,7 +62,7 @@ class FrameStreamParser:
             pass #Checksum
         elif  self.current_frame_data_index == 41:
             pass #Checksum
-            if self.current_frame_index == 9:
+            if self.current_frame_index == 59:
                 #notify about new measurement set
                 #print ('callback')
                 #print(self.current_measurement_set)
@@ -86,23 +88,20 @@ class FrameStreamParser:
                 return
 
             if measurement_item_index == 0:
-                self.current_measurement_set[frame_set_measurement_index, 0] = value #intensity
+                self.current_measurements[0] = value
             elif measurement_item_index == 1:
-                self.current_measurement_set[frame_set_measurement_index, 1] = value #intensity
+                self.current_measurements[1] = value
             elif measurement_item_index == 2:
-                #print (theta, 'degrees: H', value )
-                self.current_measurement_set[frame_set_measurement_index, 2] = value #range
-                #print ('---- Range High:', value)
+                self.current_measurements[2] = value
             elif measurement_item_index == 3:
-                self.current_measurement_set[frame_set_measurement_index, 3] = value #range
-                #print (theta, 'degrees: L', value )
-                #print ('---- Range Low:', value)
+                self.current_measurements[3] = value
             elif measurement_item_index == 4:
-                self.current_measurement_set[frame_set_measurement_index, 4] = theta #value #reserved
+                intensity = self.current_measurements[0] + self.current_measurements[1] << 8
+                range = self.current_measurements[2] + self.current_measurements[3] << 8
+                self.current_measurement_set[theta, 0] = intensity
+                self.current_measurement_set[theta, 1] = range 
             elif measurement_item_index == 5:
-                self.current_measurement_set[frame_set_measurement_index, 5] = theta #value #reserved
-                #print(frame_set_measurement_index)
-                #print(self.current_measurement_set[frame_set_measurement_index, :])
+                pass
             
 
 '''
