@@ -22,7 +22,7 @@ class FrameStreamParser:
         self.rpm = None
         self.callback = callback
         self.angle_index = 0
-        self.current_measurements = np.zeroes(4)
+        self.current_measurements = np.zeros(4)
     
     def add(self, value):
         pass
@@ -50,7 +50,7 @@ class FrameStreamParser:
             #self.current_frame_data_index = value
             #print(value)
             self.angle_index = value
-            self.current_measurements = np.zeroes(4)
+            self.current_measurements = np.zeros(4)
             pass
         elif self.current_frame_data_index == 2:
             pass #RPM
@@ -83,10 +83,15 @@ class FrameStreamParser:
             measurement_item_index =  (self.current_frame_data_index-4) % 6
             #print ('---------------- measurement_item_index:', measurement_item_index)
             
+            
+            
+            '''
+            This BUGGG was casuing many frames to return empty values !!!!
             if frame_set_measurement_index >= 60:
                 #error in data
                 return
-
+            '''
+            
             if measurement_item_index == 0:
                 self.current_measurements[0] = value
             elif measurement_item_index == 1:
@@ -96,8 +101,8 @@ class FrameStreamParser:
             elif measurement_item_index == 3:
                 self.current_measurements[3] = value
             elif measurement_item_index == 4:
-                intensity = self.current_measurements[0] + self.current_measurements[1] << 8
-                range = self.current_measurements[2] + self.current_measurements[3] << 8
+                intensity = self.current_measurements[0] + self.current_measurements[1] * 256
+                range = self.current_measurements[2] + self.current_measurements[3] * 256
                 self.current_measurement_set[theta, 0] = intensity
                 self.current_measurement_set[theta, 1] = range 
             elif measurement_item_index == 5:
