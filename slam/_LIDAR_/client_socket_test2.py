@@ -48,23 +48,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         intensities = measurements[:, 0]
         distances = measurements[:, 1]
         degrees = range(360)
-
-        #print(intensities[180])
-        
-        # low = np.zeros((len(degrees))) + 175
-        # high = np.zeros((len(degrees))) + 185
-        # mask1 = np.logical_and(np.greater(degrees, low), np.less(degrees, high))
-        
-        # low = np.zeros((len(degrees))) + 350
-        # high = np.zeros((len(degrees))) + 360
-        # mask2 = np.logical_and(np.greater(degrees, low), np.less(degrees, high))
-        
-        #distances *= np.logical_or(mask1, mask2)
-
-        #mask = np.logical_and(np.greater(distances, -5),np.less(distances, 5))
-        #xx = x * mask
-        #yy = y * mask
-
         x = distances * np.sin(np.deg2rad(degrees)) # + xx
         y = distances * np.cos(np.deg2rad(degrees)) # + yy
         
@@ -72,3 +55,25 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         figure.canvas.draw_idle()
         figure.canvas.flush_events()
         
+
+
+
+'''
+#print(intensities[180])
+
+# low = np.zeros((len(degrees))) + 175
+# high = np.zeros((len(degrees))) + 185
+# mask1 = np.logical_and(np.greater(degrees, low), np.less(degrees, high))
+
+# low = np.zeros((len(degrees))) + 350
+# high = np.zeros((len(degrees))) + 360
+# mask2 = np.logical_and(np.greater(degrees, low), np.less(degrees, high))
+
+#distances *= np.logical_or(mask1, mask2)
+
+#mask = np.logical_and(np.greater(distances, -5),np.less(distances, 5))
+#xx = x * mask
+#yy = y * mask
+
+        
+'''
