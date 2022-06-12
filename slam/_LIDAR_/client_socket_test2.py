@@ -4,9 +4,8 @@ import socket
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-HOST = "192.168.1.87"  # The server's hostname or IP address
-PORT = 8080  # The port used by the server
+HOST = '192.168.1.111'  # The server's hostname or IP address
+PORT = 8081  # The port used by the server
 MSGLEN = 5760
 
 plt.ion()
@@ -32,7 +31,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     while True:
         
-
         chunks = []
         bytes_recd = 0
         while bytes_recd < MSGLEN:
@@ -48,15 +46,22 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         intensities = measurements[:, 0]
         distances = measurements[:, 1]
         degrees = range(360)
+        
         x = distances * np.sin(np.deg2rad(degrees)) # + xx
         y = distances * np.cos(np.deg2rad(degrees)) # + yy
         
         sc.set_offsets(np.c_[x,y])
         figure.canvas.draw_idle()
         figure.canvas.flush_events()
+        #print(x,y)
+
+        COMMAND_SIZE = 32
+        cmd = 'M,3,5'
+        cmd = cmd + ' ' * (COMMAND_SIZE - len(cmd)) 
         
-
-
+        bytes = str.encode(cmd)
+        s.sendall(bytes)
+    
 
 '''
 #print(intensities[180])
