@@ -49,32 +49,25 @@ def main ():
         
             #Fixing angle issues:
             
-            start = 330
-            measurements_display[0: 360 - start, :] = measurements_orig [start: 360]
-            measurements_display[360 - start:360, :] = measurements_orig [0: start]
-
-            start = 90
-
+            start = 60
+            measurements[0: 360 - start, :] = measurements_orig [start: 360]
+            measurements[360 - start:360, :] = measurements_orig [0: start]
             
-            measurements[0: 360 - start, :] = measurements_display [start: 360]
-            measurements[360 - start:360, :] = measurements_display [0: start]
-            
-            
-            intensities = measurements_display[:, 0]
-            distances = measurements_display[:, 1]
-            degrees = range(360)
-            
-            x = distances * np.sin(np.deg2rad(degrees)) # + xx
-            y = distances * np.cos(np.deg2rad(degrees)) # + yy
-            
-            #sc.set_offsets(np.c_[x,y])
-            #figure.canvas.draw_idle()
-            #figure.canvas.flush_events()
-            #print(x,y)
-
-            cmd = get_command(measurements[:, 1], measurements[:, 0])    
+            intensities = measurements[:, 0]
+            distances = measurements[:, 1]
+            cmd = get_command(distances, intensities)    
             bytes = str.encode(cmd)
             s.sendall(bytes)
+
+            degrees = range(360)
+            x = distances * np.cos(np.deg2rad(degrees)) # + xx
+            y = distances * np.sin(np.deg2rad(degrees)) # + yy
+            sc.set_offsets(np.c_[x,y*-1])
+            figure.canvas.draw_idle()
+            figure.canvas.flush_events()
+            #print(x,y)
+
+            
 
 COMMAND_SIZE = 32
 _last_command = " " * COMMAND_SIZE
@@ -90,8 +83,8 @@ def get_command (distances, intensities):
     cmd = ' ' * COMMAND_SIZE
     
     #too_close = np.any(np.less(distances[355:360], 200))
-    too_close = np.any( np.logical_and(np.less(distances[355:360], 200), np.greater(intensities[355:360], 90) ) )
-    #print(too_close)
+    too_close = np.any( np.logical_and(np.less(distances[0:30], 200), np.greater(intensities[0:30], 90) ) )
+    print(too_close)
     #print(intensities[355:360])
 
     if too_close:
