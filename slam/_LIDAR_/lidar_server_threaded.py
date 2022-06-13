@@ -3,6 +3,8 @@ from lidar_reader2 import *
 import socket
 import numpy as np
 import subprocess
+from _thread import *
+import threading
 
 import sys
 sys.path.insert(1, '../orangepwm/')
@@ -55,8 +57,29 @@ def parser_callback (rpm, measurements):
                 l = int(segs[1])
                 r = int(segs[2])
                 print ('Motor Command. Left:', l, 'Right:', r)
-                motors.set_speed(l, r)
+                #motors.set_speed(l, r)
     
+
+# thread function
+def threaded(conn):
+    while True:
+        cmd = conn.recv(32).decode().strip()
+        if not cmd:
+            break
+        print("response command: ", cmd)
+        if len (cmd) > 0:
+            segs = cmd.split(",")
+            op = segs[0]
+            if op == 'M':
+                if len(segs) == 3:
+                    pass
+                    l = int(segs[1])
+                    r = int(segs[2])
+                    print ('Motor Command. Left:', l, 'Right:', r)
+                    #motors.set_speed(l, r)while True:
+ 
+
+
 #SERVER TCP SOCKET THREAD
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     # open serial port with serial . 
@@ -66,6 +89,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     while True:
         conn, addr = s.accept()
+        start_new_thread(threaded, (conn,))
         try:
             print(f"Connected by {addr}")
             #data = conn.recv(1024)
