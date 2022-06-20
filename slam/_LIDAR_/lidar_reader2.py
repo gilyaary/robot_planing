@@ -22,7 +22,10 @@ class FrameStreamParser:
         self.rpm = None
         self.callback = callback
         self.angle_index = 0
-        self.current_measurements = np.zeros(4)
+        self.current_measurements = np.zeros((4))
+        self.last_checksum = 0
+        self.running_sum = 0
+        self.bad_frame_detected = False
     
     def add(self, value):
         pass
@@ -40,17 +43,23 @@ class FrameStreamParser:
             else:
                 self.current_frame_data_index = 0
                 self.current_frame_index += 1
-            #print(self.current_frame_index)
+                #print(self.current_frame_index)
+            self.running_sum = value
             return
         
         self.current_frame_data_index += 1
         #print ('-----', self.current_frame_data_index)intensity
         
+        if self.current_frame_data_index < 40:
+            self.running_sum += value
+
         if self.current_frame_data_index == 1:
             #self.current_frame_data_index = value
-            #print(value)
-            self.angle_index = value
-            self.current_measurements = np.zeros(4)
+            index = value % 60
+            #print('Frame Number: ', index)
+
+            self.angle_index = index
+            self.current_measurements = np.zeros((4))
             pass
         elif self.current_frame_data_index == 2:
             pass #RPM
@@ -60,18 +69,32 @@ class FrameStreamParser:
             self.rpm = (self.rpm[0], value)
         elif self.current_frame_data_index == 40:
             pass #Checksum
+            self.last_checksum = value
         elif  self.current_frame_data_index == 41:
             pass #Checksum
+            
+            self.running_sum = 255 - (self.running_sum%256)
+            #print(self.last_checksum, self.running_sum)
+            #self.last_checksum += value * 256
+            #print(value, self.running_sum)
+            if self.last_checksum != self.running_sum:
+                #print("bad frame - corrupt data")
+                #self.bad_frame_detected = True
+                pass
+
             if self.current_frame_index == 59:
                 #notify about new measurement set
                 #print ('callback')
                 #print(self.current_measurement_set)
-                if self.callback:
-                    self.callback(self.rpm, self.current_measurement_set)
+                if self.bad_frame_detected:
+                    print("Bad Frame. Not sending data")  
+                    self.bad_frame_detected = False
+                elif self.callback:
+                        self.callback(self.rpm, self.current_measurement_set)
 
         #Handle Measurement. 6 measurements per frame
         else:
-            
+            #print('process_measurements')            
             start_theta = self.angle_index * 6 #  36 * self.current_frame_index
             measurement_index_in_frame = int ((self.current_frame_data_index - 4) / 6)
             
@@ -83,15 +106,10 @@ class FrameStreamParser:
             measurement_item_index =  (self.current_frame_data_index-4) % 6
             #print ('---------------- measurement_item_index:', measurement_item_index)
             
-            
-            
-            '''
-            This BUGGG was casuing many frames to return empty values !!!!
-            if frame_set_measurement_index >= 60:
+            #if frame_set_measurement_index >= 60:
                 #error in data
-                return
-            '''
-            
+            #    return
+
             if measurement_item_index == 0:
                 self.current_measurements[0] = value
             elif measurement_item_index == 1:
@@ -102,9 +120,12 @@ class FrameStreamParser:
                 self.current_measurements[3] = value
             elif measurement_item_index == 4:
                 intensity = self.current_measurements[0] + self.current_measurements[1] * 256
-                range = self.current_measurements[2] + self.current_measurements[3] * 256
+                distance = self.current_measurements[2] + self.current_measurements[3] * 256
                 self.current_measurement_set[theta, 0] = intensity
-                self.current_measurement_set[theta, 1] = range 
+                self.current_measurement_set[theta, 1] = distance
+                if intensity > 100 and distance and distance < 100 and distance > 0:
+                    #print(theta, intensity)
+                    pass
             elif measurement_item_index == 5:
                 pass
             

@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-HOST = "192.168.1.87"  # The server's hostname or IP address
+HOST = "192.168.1.112"  # The server's hostname or IP address
 PORT = 8080  # The port used by the server
 MSGLEN = 2880
 

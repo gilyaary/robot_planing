@@ -7,8 +7,8 @@ import subprocess
 import sys
 sys.path.insert(1, '../orangepwm/')
 
-from motor_pwm_control import *
-
+from time import sleep
+ 
 test = subprocess.Popen(["ifconfig"], stdout=subprocess.PIPE)
 output = str(test.communicate()[0])
 lines = output.split("\\n")
@@ -38,39 +38,29 @@ DATAEND = 40 # null byte
 startCount = 0
 conn = None
 addr = None
-motors = None #MotorPwmControl()
+cmd = None
+
 
 def parser_callback (rpm, measurements):
+    global cmd
+    global conn
     bytes = measurements.tobytes()
     conn.sendall(bytes)
-    print (len(bytes))
-    cmd = conn.recv(32).decode().strip()
-    print("response command: ", cmd)
-    if len (cmd) > 0:
-        segs = cmd.split(",")
-        op = segs[0]
-        if op == 'M':
-            if len(segs) == 3:
-                pass
-                l = int(segs[1])
-                r = int(segs[2])
-                print ('Motor Command. Left:', l, 'Right:', r)
-                motors.set_speed(l, r)
-    
+    #print (len(bytes))
+    cmd = conn.recv(32).decode()
+    print('Received Command: ', cmd)
+
 #SERVER TCP SOCKET THREAD
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     # open serial port with serial . 
     s.bind((HOST, PORT))
     s.listen()
-    
 
     while True:
         conn, addr = s.accept()
         try:
             print(f"Connected by {addr}")
             #data = conn.recv(1024)
-            motors = MotorPwmControl()
-
             #SERIAL CONNECTION THREAD
             with serial.Serial ( '/dev/ttyUSB0' , 230400 ) as ser :
                 parser = FrameStreamParser(parser_callback)
@@ -81,7 +71,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try :
                     # pass the start byte to the lidar 
                     ser.write(b'b')
-                    #ser.write(b'b')
                     index = -1
                    
                     while True :
@@ -94,18 +83,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                             #print(value)
                             pass
                         parser.add(value)
-                   
-                    #while True:
-                    #    v = ser.read(1024)
-
-
-
 
                 finally :
                     ser . write ( b'e')
                     print ( 'end transmission' )
-                    motors.stop()
         except:
             print('exception')
             conn.close()
-            motors.stop()
