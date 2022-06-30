@@ -3,6 +3,7 @@
 import socket
 import numpy as np
 import matplotlib.pyplot as plt
+import obstacle_avoidance_and_planning as obs
 
 HOST = '192.168.1.118'  # The server's hostname or IP address
 PORT = 8081  # The port used by the server
@@ -22,6 +23,7 @@ plt.ylim(-5000, 5000)
 plt.draw()
 
 def main ():
+    path_planner = obs.PathPlanner()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2:
@@ -57,14 +59,17 @@ def main ():
                 
                 intensities = measurements[:, 0]
                 distances = measurements[:, 1]
+                degrees = range(360)
+                x = distances * np.cos(np.deg2rad(degrees)) # + xx
+                y = distances * np.sin(np.deg2rad(degrees)) # + yy
+                
                 cmd = get_command(distances, intensities)    
                 bytes = str.encode(cmd)
                 s.sendall(bytes)
                 s2.sendall(bytes)
 
-                degrees = range(360)
-                x = distances * np.cos(np.deg2rad(degrees)) # + xx
-                y = distances * np.sin(np.deg2rad(degrees)) # + yy
+                path_planner.process_lidar_observations(x=x, y=y, distances=distances, intensities=intensities)
+
                 sc.set_offsets(np.c_[x,y*-1])
                 figure.canvas.draw_idle()
                 figure.canvas.flush_events()
