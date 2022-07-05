@@ -31,15 +31,15 @@ def callback (orig_scan : LaserScan):
     scan.angle_increment = (math.pi *2) / 360
     scan.time_increment = (1.0 / laser_frequency) / (num_readings)
     scan.range_min = 1.0
-    scan.range_max = 5000.0
+    scan.range_max = 50.0
     #to do change it
     size = len(orig_scan.ranges)
     ranges = np.zeros(size)
     for i in range(size):
         if orig_scan.ranges[i] == 0:
-            ranges[i] = 5000
+            ranges[i] = math.inf  #50
         else:
-            ranges[i] = orig_scan.ranges[i]
+            ranges[i] = orig_scan.ranges[i]/100
     scan.ranges = ranges
     scan.intensities = orig_scan.intensities
 
@@ -51,7 +51,7 @@ def listener():
     global scan_pub
     global r
     rospy.init_node('lidar_scan_changer', anonymous=True)
-    scan_pub = rospy.Publisher('scan_mod', LaserScan, queue_size=50)
+    scan_pub = rospy.Publisher('scan2', LaserScan, queue_size=50)
     r = rospy.Rate(1.0)
 
     sub = rospy.Subscriber('/scan', LaserScan, callback)

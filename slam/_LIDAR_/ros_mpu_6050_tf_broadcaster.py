@@ -36,8 +36,10 @@ def imu_message_callback(imu: Imu):
     # We start by assumeing that location does not change
 
     #print(imu.orientation.x, imu.orientation.y, imu.orientation.z)
-    odom_pub = rospy.Publisher("odom", Odometry, queue_size=50)
+    #odom_pub = rospy.Publisher("odom", Odometry, queue_size=50)
     br = tf.TransformBroadcaster()
+    
+    
     br.sendTransform(( 0,0,0 ),
                      tf.transformations.quaternion_from_euler(0, 0, 0),
                      time,

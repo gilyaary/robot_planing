@@ -72,6 +72,7 @@ def parser_callback (rpm, measurements):
     global laser_frequency
     global count
     global r
+
     current_time = rospy.Time.now()
     scan = LaserScan()
     scan.header.stamp = current_time

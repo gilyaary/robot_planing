@@ -19,17 +19,17 @@ def on_press(key):
     #return False  # stop listener; remove this if want more keys
     if key.name == 'up':
         print('up')
-        r.publish(Float64(20))
-        l.publish(Float64(20))
-    if key.name == 'down':
+        r.publish(Float64(25))
+        l.publish(Float64(25))
+    if key.name == 'down': 
         print('down')
     if key.name == 'left':
         print('left')
         r.publish(Float64(0))
-        l.publish(Float64(20))
+        l.publish(Float64(25))
     if key.name == 'right':
         print('right')
-        r.publish(Float64(20))
+        r.publish(Float64(25))
         l.publish(Float64(0))
     if key.name == 'space':
         print('space')

@@ -13,6 +13,7 @@ startCount = 0
 
 # open serial port with serial . 
 with serial.Serial ( '/dev/ttyUSB0' , 230400 ) as ser :
+#with serial.Serial ( '/dev/ttyUSB0' , 115200 ) as ser :
 
     # create buffer 
     buff = [ 0 ] * BUFFSIZE

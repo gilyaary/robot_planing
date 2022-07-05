@@ -27,7 +27,8 @@ def parser_callback (rpm, measurements):
         #    print(measurements[i, : ])
 
 # open serial port with serial . 
-with serial.Serial ( '/dev/ttyUSB0' , 230400 ) as ser :
+#with serial.Serial ( '/dev/ttyUSB0' , 230400 ) as ser :
+with serial.Serial ( '/dev/ttyUSB0' , 115200 ) as ser :
     parser = FrameStreamParser(parser_callback)
 
     # create buffer 

@@ -2,6 +2,8 @@
 
 import rospy
 from sensor_msgs.msg import Imu
+import tf
+import numpy as np
 
 x, y, z = 0,0,0
 speed_x, speed_y, speed_z = 0,0,0
@@ -43,7 +45,19 @@ def imu_message_callback(imu: Imu):
             #print(x,y,z,rx,ry,rz,rw)
             #print(rx, ry, rz)
             #print(x, y, z)
-            print(la)
+            #print(la)
+            quaternion = (
+            imu.orientation.x,
+            imu.orientation.y,
+            imu.orientation.z,
+            imu.orientation.w)
+            euler = tf.transformations.euler_from_quaternion(quaternion)
+            degrees = np.zeros(3)
+            roll = (360 + ((euler[0] / 6.26) * 360)) % 360
+            pitch = (360 + ((euler[1] / 6.26) * 360)) % 360
+            yaw =  (360 + ((euler[2] / 6.26) * 360)) % 360
+
+            print(roll, pitch, yaw)
 
     last_time = time
     
@@ -53,7 +67,8 @@ def imu_message_callback(imu: Imu):
 
 def listener():
     rospy.init_node('mpu_6050_test_subscriber', anonymous=True)
-    rospy.Subscriber('/imu/data_raw', Imu, imu_message_callback)
+    #rospy.Subscriber('/imu/data_raw', Imu, imu_message_callback)
+    rospy.Subscriber('/imu/data', Imu, imu_message_callback)
     rospy.spin()
 
 if __name__ == '__main__':
