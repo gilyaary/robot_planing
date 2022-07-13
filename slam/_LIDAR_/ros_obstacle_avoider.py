@@ -44,8 +44,8 @@ def get_command (laserScan: LaserScan):
         left_motor_pub.publish(0)
     elif not too_close:
         print('ok')
-        right_motor_pub.publish(20)
-        left_motor_pub.publish(20)
+        right_motor_pub.publish(30)
+        left_motor_pub.publish(30)
     
 def listener():
     global right_motor_pub, left_motor_pub, r
