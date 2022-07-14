@@ -33,10 +33,6 @@ import tf
 class BC:
 
     def __init__(self):
-        self.last_x = 0
-        self.last_y = 0
-        self.total_ticks_right = 0
-        self.total_ticks_left = 0
         self.left_dir = 1
         self.right_dir = 1
         rospy.init_node('gil_laser_scan_tf_broadcaster')
@@ -45,7 +41,10 @@ class BC:
         rospy.Subscriber('/imu/data', Imu, self.imu_message_callback)
         self.last_print_time = rospy.Time.now().to_sec()
         self.simulated_yaw = 0
-              
+        self.last_x = 0
+        self.last_y = 0
+        self.last_yaw = 0
+
         rospy.spin()
 
     #We can do multiple conversions here but we just need to convert from one frame now.
@@ -67,27 +66,58 @@ class BC:
         #odom_pub = rospy.Publisher("odom", Odometry, queue_size=50)
         br = tf.TransformBroadcaster()
         #offset = (22 / 360) * 2 * math.pi
-        location = ( 0,0,0 )
+        location = ( self.last_x, self.last_y,0 )
         #We are getting the orientation from /imu/data ALREADY as quaternion so no need to change anything
-        rotation = (imu.orientation.x,imu.orientation.y,imu.orientation.z,imu.orientation.w)
-        #rotation = tf.transformations.quaternion_from_euler(0, 0, self.simulated_yaw)
+        
+        #rotation = (imu.orientation.x,imu.orientation.y,imu.orientation.z,imu.orientation.w)
+        #rotation_euler = tf.transformations.euler_from_quaternion(rotation)
+        rotation_euler = (0,0, self.last_yaw)
+        rotation_euler = (rotation_euler[0],rotation_euler[1],rotation_euler[2])
+        rotation_quaternion = tf.transformations.quaternion_from_euler(rotation_euler[0],rotation_euler[1],rotation_euler[2])
+        
+        
+        self.last_yaw = rotation_euler[2]
+        
+
         if rospy.Time.now().to_sec() - self.last_print_time > 3:
             self.simulated_yaw += math.pi / 2
             self.last_print_time = rospy.Time.now().to_sec()
-            self.show_euler(rotation);
-        
-        br.sendTransform(location,
-            tf.transformations.quaternion_from_euler(0,0,0),
-            time,
-            "laser_frame",
-            "base_link")
-        
-        #here we send the rotation
-        br.sendTransform(location,
-            rotation,
+            #self.show_euler(rotation_euler);
+
+        br.sendTransform(( 0,0,0 ),
+        tf.transformations.quaternion_from_euler(0, 0, 0),
+          time,
+          "laser_frame",
+          "base_link")
+
+        br.sendTransform(( 0,0,0 ),
+          tf.transformations.quaternion_from_euler(0, 0, 0),
             time,
             "base_link",
+            "base_footprint")
+
+        # #This we should set per odometry
+        br.sendTransform(( 0,0,0 ),
+            rotation_quaternion,
+            time,
+            "base_footprint",
             "odom")
+
+        br.sendTransform(( 0,0,0 ),
+            tf.transformations.quaternion_from_euler(0, 0, 0),
+            time,
+            "odom",
+            "nav")
+
+        br.sendTransform(( 0,0,0 ),
+            tf.transformations.quaternion_from_euler(0, 0, 0),
+            time,
+            "nav",
+            "map")
+
+
+      ##########################
+
         
         #this is a kind of "servo" feedback mechnism. We check the required tps vs the
         # actual tps from odometry and change the pwm value sent to the motors
@@ -95,19 +125,23 @@ class BC:
         values = msg.data
         layout = msg.layout
         tps_1, tps_2, tick_1, tick_2 = values[0], values[1], values[2], values[3]
+        delta_R = 0
+        delta_L = 0
         if tick_1 != 0:
-          change = self.right_dir
-          self.total_ticks_right += change 
-          #print('right ticks: ', self.total_ticks_right)
+          delta_R = self.right_dir
         if tick_2 != 0:
-          change = self.left_dir
-          self.total_ticks_left += change 
-          #print('left ticks: ', self.total_ticks_left)
+          delta_L = self.left_dir
 
-        # TODO: Calculate x,y location and roientation theta (arc tan x/y)
-        # 75 ticks = 3 feet = 1 meter
-
-        print('Ticks Right', self.total_ticks_right, 'Ticks Left', self.total_ticks_left)        
+        wheelradius = 0.033
+        w2w = 0.260 #wheel to wheel
+        TPR = 20 # 20 ticks per round
+        dl = 2 * math.pi * wheelradius * delta_L / TPR
+        dr = 2 * math.pi * wheelradius * delta_R / TPR
+        
+        #self.last_x += dx
+        #self.last_y += dy
+        #self.last_yaw += dth
+        #print(self.last_x, self.last_y)
     
     
     def motor_speed_callback(self, msg: Float64MultiArray):

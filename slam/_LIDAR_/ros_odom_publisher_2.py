@@ -47,13 +47,16 @@ r = rospy.Rate(10)
 while not rospy.is_shutdown():
     current_time = rospy.Time.now()
 
+    
     delta_L = left_ticks - last_left_ticks
     delta_R = right_ticks - last_right_ticks
     dl = 2 * pi * wheelradius * delta_L / TPR
     dr = 2 * pi * wheelradius * delta_R / TPR
     dc = (dl + dr) / 2
+    dth = (dr-dl)/wheeltrack #   angle_change = distance_center_travelled / distance_from_center_to_wheel
+
     dt = (current_time - last_time).to_sec()
-    dth = (dr-dl)/wheeltrack
+    
 
     if dr==dl:
         dx=dr*cos(th)

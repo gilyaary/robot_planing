@@ -47,7 +47,7 @@ Summary:
             python3 ros_mpu_6050_tf_broadcaster.py 
             (Will create a tf frame conversion from laser_frame -> map according to the data in /imu/data we can change this later to come from odom) 
         4. rosrun rviz rviz (then open the saved config file)
-        5. rosrun gmapping slam_gmapping scan:=scan   
+        5. rosrun gmapping slam_gmapping scan:=scan2 (The changer will elliminate points with 0     distance)   
         6. To move the robot use the   ros_robot_teleop.py
 
 SLAM:
