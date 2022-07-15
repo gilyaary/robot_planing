@@ -7,7 +7,7 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from std_msgs.msg import Float64MultiArray
 import math
 import numpy as np 
-
+from differential_drive_math import *
 import tf
 
 ######
@@ -44,6 +44,8 @@ class BC:
         self.last_x = 0
         self.last_y = 0
         self.last_yaw = 0
+        self.last_right_ticks = 0
+        self.last_left_ticks = 0
 
         rospy.spin()
 
@@ -69,14 +71,14 @@ class BC:
         location = ( self.last_x, self.last_y,0 )
         #We are getting the orientation from /imu/data ALREADY as quaternion so no need to change anything
         
-        #rotation = (imu.orientation.x,imu.orientation.y,imu.orientation.z,imu.orientation.w)
-        #rotation_euler = tf.transformations.euler_from_quaternion(rotation)
-        rotation_euler = (0,0, self.last_yaw)
-        rotation_euler = (rotation_euler[0],rotation_euler[1],rotation_euler[2])
+        rotation = (imu.orientation.x,imu.orientation.y,imu.orientation.z,imu.orientation.w)
+        rotation_euler = tf.transformations.euler_from_quaternion(rotation)
+        rotation_euler = (rotation_euler[0],rotation_euler[1],rotation_euler[2]-3.4)
         rotation_quaternion = tf.transformations.quaternion_from_euler(rotation_euler[0],rotation_euler[1],rotation_euler[2])
         
         
         self.last_yaw = rotation_euler[2]
+        #print('imu angle: ', rotation_euler[2])
         
 
         if rospy.Time.now().to_sec() - self.last_print_time > 3:
@@ -97,7 +99,7 @@ class BC:
             "base_footprint")
 
         # #This we should set per odometry
-        br.sendTransform(( 0,0,0 ),
+        br.sendTransform(( self.last_x,self.last_y,0 ),
             rotation_quaternion,
             time,
             "base_footprint",
@@ -131,6 +133,9 @@ class BC:
           delta_R = self.right_dir
         if tick_2 != 0:
           delta_L = self.left_dir
+        
+        self.last_left_ticks += delta_R
+        self.last_right_ticks += delta_L
 
         wheelradius = 0.033
         w2w = 0.260 #wheel to wheel
@@ -138,11 +143,18 @@ class BC:
         dl = 2 * math.pi * wheelradius * delta_L / TPR
         dr = 2 * math.pi * wheelradius * delta_R / TPR
         
-        #self.last_x += dx
-        #self.last_y += dy
-        #self.last_yaw += dth
-        #print(self.last_x, self.last_y)
-    
+        #MY FUNCTIONS
+        r1, dtheta, dxl, dyl, dxr, dyr = calc (dl, dr, w2w)
+        dx = (dxr+dxl) / 2
+        dy = (dyr+dyl) / 2
+        print('dtheta', dtheta)
+        theta = self.last_yaw + dtheta
+        x_new, y_new = rotate_and_add(self.last_x, self.last_y, theta, dx, dy)
+
+        self.last_x = x_new
+        self.last_y = y_new
+        #self.last_yaw = theta
+        print(self.last_x, self.last_y, 360*self.last_yaw/6.26)
     
     def motor_speed_callback(self, msg: Float64MultiArray):
         values = msg.data
