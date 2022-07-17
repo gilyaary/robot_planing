@@ -35,13 +35,26 @@ def callback (orig_scan : LaserScan):
     #to do change it
     size = len(orig_scan.ranges)
     ranges = np.zeros(size)
-    for i in range(size):
+    intensities = np.zeros(size)
+
+    angle_corr_index = 63
+    for i in range(angle_corr_index,size):
         if orig_scan.ranges[i] < 0.0001:
-            ranges[i] = math.inf  #50
+            ranges[i-angle_corr_index] = math.inf  #50
         else:
-            ranges[i] = orig_scan.ranges[i]/1000
+            ranges[i-angle_corr_index] = orig_scan.ranges[i]/1000
+        intensities[i-angle_corr_index] = orig_scan.intensities[i]
+
+    for i in range(0, angle_corr_index):
+        if orig_scan.ranges[size-angle_corr_index-i] < 0.0001:
+            ranges[size-angle_corr_index+i] = math.inf  #50
+        else:
+            ranges[size-angle_corr_index+i] = orig_scan.ranges[i]/1000
+        intensities[size-angle_corr_index+i] = orig_scan.intensities[i]
+        
+
     scan.ranges = ranges
-    scan.intensities = orig_scan.intensities
+    scan.intensities = intensities
 
     scan_pub.publish(scan)
     #r.sleep()

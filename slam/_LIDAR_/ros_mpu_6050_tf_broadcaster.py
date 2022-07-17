@@ -43,9 +43,12 @@ class BC:
         self.simulated_yaw = 0
         self.last_x = 0
         self.last_y = 0
-        self.last_yaw = 0
+        self.last_yaw = 0 #math.pi * 0.5
         self.last_right_ticks = 0
         self.last_left_ticks = 0
+        self.imu_message_print_time = rospy.Time.now().to_sec()
+        self.imu_accel_sum = {'x':0, 'y':0, 'z':0}
+        self.imu_accel_msg_count = 0
 
         rospy.spin()
 
@@ -56,6 +59,27 @@ class BC:
         la = imu.linear_acceleration
         aa = imu.angular_velocity
 
+        
+
+        self.imu_accel_sum['x'] += la.x
+        self.imu_accel_sum['y'] += la.y
+        self.imu_accel_sum['z'] += la.z
+        self.imu_accel_msg_count += 1
+        now_sec = rospy.Time.now().to_sec()
+        if now_sec - self.imu_message_print_time > 1:
+          #print(la)
+          #print(self.imu_accel_sum['x']/self.imu_accel_msg_count, self.imu_accel_sum['y']/self.imu_accel_msg_count)
+          #print(self.imu_accel_sum[0]/self.imu_accel_msg_count)
+          self.imu_message_print_time = now_sec
+          self.imu_accel_sum['x'] = 0
+          self.imu_accel_sum['y'] = 0
+          self.imu_accel_sum['z'] = 0
+          self.imu_accel_msg_count = 0
+
+        
+
+
+  
         time_sec = rospy.Time.now().to_sec() 
         time = rospy.Time.from_sec(time_sec)
         
@@ -73,11 +97,12 @@ class BC:
         
         rotation = (imu.orientation.x,imu.orientation.y,imu.orientation.z,imu.orientation.w)
         rotation_euler = tf.transformations.euler_from_quaternion(rotation)
-        rotation_euler = (rotation_euler[0],rotation_euler[1],rotation_euler[2]-3.4)
-        rotation_quaternion = tf.transformations.quaternion_from_euler(rotation_euler[0],rotation_euler[1],rotation_euler[2])
-        
-        
-        self.last_yaw = rotation_euler[2]
+        rotation_euler = (rotation_euler[0],rotation_euler[1],rotation_euler[2])
+        #(2*math.pi-rotation_euler[2])
+        rotation_quaternion_base_to_map = tf.transformations.quaternion_from_euler(rotation_euler[0],rotation_euler[1], self.last_yaw)
+        #the 0.5 diff is essential to show correct path
+        rotation_quaternion_laser_to_base = tf.transformations.quaternion_from_euler(0,0,math.pi * 0.5)
+        #self.last_yaw = rotation_euler[2]
         #print('imu angle: ', rotation_euler[2])
         
 
@@ -86,25 +111,39 @@ class BC:
             self.last_print_time = rospy.Time.now().to_sec()
             #self.show_euler(rotation_euler);
 
+        
+        
+        
+        #Laser to robot base
         br.sendTransform(( 0,0,0 ),
-        tf.transformations.quaternion_from_euler(0, 0, 0),
+          rotation_quaternion_laser_to_base,
           time,
           "laser_frame",
           "base_link")
 
+        
+        
+        
         br.sendTransform(( 0,0,0 ),
           tf.transformations.quaternion_from_euler(0, 0, 0),
             time,
             "base_link",
             "base_footprint")
 
+        
+
+        
+        #CHNGING FROM ROBOT BASE TO WORLD
         # #This we should set per odometry
-        br.sendTransform(( self.last_x,self.last_y,0 ),
-            rotation_quaternion,
+        br.sendTransform(( self.last_x,self.last_y,0 ),rotation_quaternion_base_to_map,
             time,
             "base_footprint",
             "odom")
 
+        
+        
+        
+        
         br.sendTransform(( 0,0,0 ),
             tf.transformations.quaternion_from_euler(0, 0, 0),
             time,
@@ -153,7 +192,7 @@ class BC:
 
         self.last_x = x_new
         self.last_y = y_new
-        #self.last_yaw = theta
+        self.last_yaw = theta
         print(self.last_x, self.last_y, 360*self.last_yaw/6.26)
     
     def motor_speed_callback(self, msg: Float64MultiArray):
