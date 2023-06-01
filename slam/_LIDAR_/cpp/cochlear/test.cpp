@@ -5,19 +5,42 @@
 
 using namespace std;
 
+int getToken(int code) {
+    return 1; //code | (code<<3);
+}
+
 void frameToCodes(int* emaArray) {
-    printf("E: %d\n", emaArray[0]); //E
-    printf("M: %d\n", emaArray[1]); //M
-    printf("A: %d\n", emaArray[2]); //A
+    //printf("E: %d\n", emaArray[0]); //E
+    //printf("M: %d\n", emaArray[1]); //M
+    //printf("A: %d\n", emaArray[2]); //A
     //printf("%d\n", emaArray[3]); //PADS
 
     //18 bit code
     int _18_bit_codes = (emaArray[0]<<13) | (emaArray[1]<<8) | emaArray[2];
-    printf("%d\n\n", _18_bit_codes);
+    //printf("%d\n\n", _18_bit_codes);
     for (int i=17; i>=0; i--) {
          //_18_bit_codes >> i)
          printf("%d", (_18_bit_codes>>i & 1));   
     }
+    printf("\n");
+
+    long tokensValue = 0;
+    for(int i=0; i<18; i+=3) {
+        //replace a 3 bitcode for 6 bit toen
+        int code = (_18_bit_codes>>i) & 7;
+        printf("Code: %d\n", code);
+        int token = getToken(code);
+        tokensValue |= (token<<(i*2));
+    }
+    for (int i=35; i>=0; i--) {
+         //_18_bit_codes >> i)
+         printf("%d", ((tokensValue>>i) & 1));   
+    }
+    printf("\n");
+    /*
+    to create bytes we need the sync token, the 3 data tokens, the error token and the phase extender + padding
+    */
+
     printf("\n");
 
 
