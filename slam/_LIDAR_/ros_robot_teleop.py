@@ -74,38 +74,38 @@ class Teleop:
         
         if key.name == 'up':
             print('up')
-            self.tps_1 = -90
-            self.tps_2 = -90
+            self.tps_1 = -40
+            self.tps_2 = -40
             self.values.data = self.get_value_from_tps()
             self.motor_speed_pub.publish(self.values)
-            time.sleep(0.5)
-            self.tps_1 = -75
-            self.tps_2 = -75
-            self.values.data = self.get_value_from_tps()
-            self.motor_speed_pub.publish(self.values) 
+            # time.sleep(0.5)
+            # self.tps_1 = -75
+            # self.tps_2 = -75
+            # self.values.data = self.get_value_from_tps()
+            # self.motor_speed_pub.publish(self.values) 
         if key.name == 'down': 
             print('down')
-            self.tps_1 = 90
-            self.tps_2 = 90
+            self.tps_1 = 20
+            self.tps_2 = 20
             self.values.data = self.get_value_from_tps()
             self.motor_speed_pub.publish(self.values)
-            time.sleep(0.5)
-            self.tps_1 = 75
-            self.tps_2 = 75
-            self.values.data = self.get_value_from_tps()
-            self.motor_speed_pub.publish(self.values)
+            # time.sleep(0.5)
+            # self.tps_1 = 30
+            # self.tps_2 = 30
+            # self.values.data = self.get_value_from_tps()
+            # self.motor_speed_pub.publish(self.values)
         
         
         if key.name == 'left':
             print('left')
-            self.tps_1 = -90
-            self.tps_2 = 90
+            self.tps_1 = -20
+            self.tps_2 = 20
             self.values.data = self.get_value_from_tps()
             self.motor_speed_pub.publish(self.values)
         if key.name == 'right':
             print('right')
-            self.tps_1 = 90
-            self.tps_2 = -90
+            self.tps_1 = 20
+            self.tps_2 = -20
             self.values.data = self.get_value_from_tps()
             self.motor_speed_pub.publish(self.values)
         
