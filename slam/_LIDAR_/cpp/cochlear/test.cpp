@@ -39,6 +39,7 @@ void frameToCodes(int* emaArray) {
     printf("\n");
     /*
     to create bytes we need the sync token, the 3 data tokens, the error token and the phase extender + padding
+    SYNC DT1 DT2 DT3 ERR EXT PAD
     */
 
     printf("\n");
